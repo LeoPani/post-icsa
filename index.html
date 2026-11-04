@@ -117,15 +117,32 @@
 
   /* ---------- simulação do envio ---------- */
   .palco-sim { position: relative; border: 2px solid var(--ink); background: var(--suave); padding: 16px; overflow: hidden; }
-  .trilho { display: grid; gap: 8px; }
-  .passo {
-    display: grid; grid-template-columns: 26px minmax(0,1fr); gap: 10px; align-items: center;
-    border: 2px solid var(--ink); background: var(--campo); padding: 8px 10px; transition: background 180ms linear;
+  .fone {
+    width: 268px; margin: 0 auto; border: 4px solid var(--ink); background: var(--campo);
+    display: grid; gap: 0; position: relative;
   }
-  .passo b { width: 22px; height: 22px; border: 2px solid var(--ink); display: grid; place-content: center; font-size: 11px; background: var(--paper); }
-  .passo span { font-size: 13px; font-weight: 700; }
-  .passo[data-ativo="1"] { background: var(--yellow); }
-  .passo[data-feito="1"] b { background: var(--ah-verde, #1B6957); color: #fff; }
+  .fone-topo { border-bottom: 3px solid var(--ink); padding: 9px 10px; display: flex; align-items: center; gap: 9px; }
+  .fone-topo .barra { width: 34px; height: 4px; background: var(--ink); display: block; }
+  .fone-topo b { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+  .fone-img {
+    aspect-ratio: 1/1; background: var(--suave); display: grid; place-items: center;
+    border-bottom: 3px solid var(--ink); overflow: hidden; transition: outline-color 160ms linear;
+    outline: 4px solid transparent; outline-offset: -4px;
+  }
+  .fone-img span { font-size: 11.5px; color: var(--muted); }
+  .fone-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .fone-leg {
+    min-height: 54px; padding: 9px 10px; font-size: 11.5px; line-height: 1.45; color: var(--muted);
+    border-bottom: 3px solid var(--ink); transition: outline-color 160ms linear;
+    outline: 4px solid transparent; outline-offset: -4px;
+  }
+  .fone-leg[data-cheia="1"] { color: var(--ink); }
+  .fone-bt {
+    padding: 11px; text-align: center; font-size: 13px; font-weight: 800; background: var(--campo);
+    transition: background 160ms linear, color 160ms linear;
+  }
+  [data-foco="1"] { outline-color: var(--yellow) !important; }
+  .fone-bt[data-foco="1"] { background: var(--red); color: #fff; outline: 0 !important; }
   .cursor { position: absolute; left: 24px; top: 24px; transition: transform 620ms cubic-bezier(.3,.8,.3,1); pointer-events: none; }
   .cursor[data-clique="1"] svg { transform: scale(0.72) rotate(-6deg); }
   .cursor svg { transition: transform 140ms cubic-bezier(.3,1.6,.4,1); display: block; filter: drop-shadow(0 0 0 transparent); }
@@ -137,8 +154,13 @@
   @media (prefers-reduced-motion: reduce) { .cursor { transition: none; } }
 
   .cal { padding: 15px; display: grid; gap: 9px; }
-  .cal-item { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 11px; align-items: start; border-bottom: 1px solid var(--suave); padding-bottom: 9px; }
-  .cal-item:last-child { border-bottom: 0; padding-bottom: 0; }
+  .cal-item {
+    display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 11px; align-items: start;
+    border: 0; border-bottom: 1px solid var(--suave); padding: 7px 6px 9px; width: 100%;
+    background: transparent; font-family: var(--font); text-align: left; cursor: pointer;
+  }
+  .cal-item:hover { background: var(--yellow); }
+  .cal-item:last-child { border-bottom: 0; }
   .cal-data { font-size: 11.5px; font-weight: 800; color: var(--ink); padding-top: 2px; font-variant-numeric: tabular-nums; }
   .cal-tema { font-size: 13px; line-height: 1.45; }
   .cal-tema em { font-style: normal; color: var(--muted); display: block; font-size: 11.5px; margin-top: 2px; }
@@ -287,11 +309,12 @@
             <summary>Ver como seria o envio automático</summary>
             <div class="dentro">
               <div class="palco-sim" id="palcoSim">
-                <div class="trilho">
-                  <div class="passo" data-p="0"><b>1</b><span>Abrir a conta</span></div>
-                  <div class="passo" data-p="1"><b>2</b><span>Escolher a imagem</span></div>
-                  <div class="passo" data-p="2"><b>3</b><span>Colar a legenda</span></div>
-                  <div class="passo" data-p="3"><b>4</b><span>Publicar</span></div>
+                <div class="fone">
+                  <div class="fone-topo"><span class="barra"></span><b id="simTopo">nova publicação</b></div>
+                  <div class="fone-img" id="simImg"><span>o post entra aqui</span></div>
+                  <div class="fone-leg" id="simLeg">a legenda entra aqui</div>
+                  <div class="fone-bt" id="simBt">publicar</div>
+                </div>
                 </div>
                 <div class="cursor" id="cursorSim" aria-hidden="true">
                   <svg viewBox="0 0 24 24" width="58" height="58"><polygon points="3,2 3,20 8,15 11,22 14,21 11,14 18,14" fill="#141414" stroke="#F6F4EE" stroke-width="1.5"></polygon></svg>
@@ -567,7 +590,7 @@
   }
 
   /* ---------- criar ---------- */
-  elCriar.addEventListener("click", async function () {
+  async function criarPost() {
     var titulo = elTitulo.value.trim();
     var assunto = elAssunto.value.trim();
     if (!titulo && !assunto && !selecao.length) {
@@ -615,7 +638,9 @@
     elCopiar.disabled = false;
     elCarga.classList.remove("pulsa");
     elCriar.disabled = false;
-  });
+  }
+
+  elCriar.addEventListener("click", criarPost);
 
   /* ---------- copiar, baixar, publicar ---------- */
   function copia() {
@@ -649,52 +674,70 @@
   (function () {
     var palco = $("palcoSim"), cursor = $("cursorSim"), btn = $("simular"), est = $("estadoSim");
     if (!palco) return;
-    var passos = palco.querySelectorAll(".passo");
+    var simImg = $("simImg"), simLeg = $("simLeg"), simBt = $("simBt"), simTopo = $("simTopo");
     var rodando = false, timers = [];
 
     function limpa() {
       timers.forEach(clearTimeout); timers = [];
-      Array.prototype.forEach.call(passos, function (p) {
-        p.removeAttribute("data-ativo"); p.removeAttribute("data-feito");
-      });
+      [simImg, simLeg, simBt].forEach(function (e) { e.removeAttribute("data-foco"); });
+      simImg.textContent = ""; var v = document.createElement("span");
+      v.textContent = "o post entra aqui"; simImg.appendChild(v);
+      simLeg.textContent = "a legenda entra aqui"; simLeg.removeAttribute("data-cheia");
+      simTopo.textContent = "nova publicação";
       cursor.removeAttribute("data-clique");
       cursor.style.transform = "translate(0,0)";
     }
 
     function vaiPara(alvo) {
       var a = alvo.getBoundingClientRect(), b = palco.getBoundingClientRect();
-      var x = a.left - b.left + a.width - 86;
-      var y = a.top - b.top + a.height / 2 - 26;
-      cursor.style.transform = "translate(" + x + "px," + y + "px)";
+      cursor.style.transform = "translate(" +
+        (a.left - b.left + a.width * 0.62) + "px," +
+        (a.top - b.top + a.height * 0.46) + "px)";
     }
 
     function agenda(fn, ms) { timers.push(setTimeout(fn, ms)); }
 
+    function clique(alvo, aoClicar) {
+      vaiPara(alvo);
+      agenda(function () { alvo.setAttribute("data-foco", "1"); cursor.setAttribute("data-clique", "1"); }, 620);
+      agenda(function () {
+        cursor.removeAttribute("data-clique");
+        if (aoClicar) aoClicar();
+      }, 880);
+      agenda(function () { alvo.removeAttribute("data-foco"); }, 1180);
+    }
+
     btn.addEventListener("click", function () {
       if (rodando) { limpa(); rodando = false; btn.textContent = "rodar simulação"; est.textContent = "Simulação interrompida."; return; }
-      limpa();
-      rodando = true;
+      limpa(); rodando = true;
       btn.textContent = "parar";
-      est.textContent = "Rodando. Nada é publicado: isto acontece só nesta página.";
-      var t = 260;
-      Array.prototype.forEach.call(passos, function (p, i) {
-        agenda(function () { vaiPara(p); }, t);
-        agenda(function () {
-          p.setAttribute("data-ativo", "1");
-          cursor.setAttribute("data-clique", "1");
-        }, t + 660);
-        agenda(function () {
-          cursor.removeAttribute("data-clique");
-          p.removeAttribute("data-ativo");
-          p.setAttribute("data-feito", "1");
-        }, t + 980);
-        t += 1180;
-      });
+      est.textContent = "Rodando aqui dentro. Nada é publicado em rede nenhuma.";
+
+      agenda(function () { clique(simImg, function () {
+        simImg.textContent = "";
+        if (quadros.length) {
+          var im = new Image(); im.src = quadros[0].url; im.alt = "post gerado";
+          simImg.appendChild(im);
+        } else {
+          var v = document.createElement("span"); v.textContent = "crie um post primeiro"; simImg.appendChild(v);
+        }
+      }); }, 200);
+
+      agenda(function () { clique(simLeg, function () {
+        var t = (legendaAtual || elLegenda.textContent || "").slice(0, 150);
+        simLeg.textContent = t + (t.length >= 150 ? "…" : "");
+        simLeg.setAttribute("data-cheia", "1");
+      }); }, 1700);
+
+      agenda(function () { clique(simBt, function () {
+        simTopo.textContent = "publicado — na simulação";
+      }); }, 3200);
+
       agenda(function () {
         rodando = false;
         btn.textContent = "rodar simulação";
-        est.textContent = "Fim. Na versão completa, o passo 4 só roda depois de alguém da associação aprovar.";
-      }, t + 200);
+        est.textContent = "Fim. Na versão completa, este último passo só roda depois de alguém da associação aprovar.";
+      }, 4700);
     });
   })();
 
@@ -876,17 +919,35 @@
 
   /* ---------- calendário ---------- */
   var SAZONAL = {
-    7:  { tema: "Plantio da pimenta biquinho", nota: "O primeiro plantio próprio foi em julho de 2025" },
-    11: { tema: "Colheita da pimenta biquinho", nota: "Quase duas toneladas colhidas em 2025" },
-    12: { tema: "Geleia de fim de ano e encomendas", nota: "Período de maior procura por presentes" },
-    5:  { tema: "Feiras e visitas técnicas", nota: "O Connection Terroirs foi em maio" }
+    7:  { tema: "Plantio da pimenta biquinho", nota: "O primeiro plantio próprio foi em julho de 2025",
+          titulo: "O plantio que nos devolveu a terra",
+          assunto: "O plantio da pimenta biquinho na área que recebemos, contando que até 2025 a matéria-prima vinha de fornecedor e hoje vem do nosso próprio chão. Falar do significado de plantar de novo em Bento Rodrigues." },
+    11: { tema: "Colheita da pimenta biquinho", nota: "Quase duas toneladas colhidas em 2025",
+          titulo: "A primeira colheita que é nossa",
+          assunto: "A colheita da pimenta biquinho na nossa área de plantio, a primeira desde que recebemos a sede definitiva. Falar do trabalho das sete mulheres e convidar para visitar a sede." },
+    12: { tema: "Geleia de fim de ano e encomendas", nota: "Período de maior procura por presentes",
+          titulo: "Geleia de presente, história junto",
+          assunto: "A geleia como presente de fim de ano, falando do pote de 150 g, do preço e de como encomendar com antecedência. Lembrar que cada pote é feito à mão por nós." },
+    5:  { tema: "Feiras e visitas técnicas", nota: "O Connection Terroirs foi em maio",
+          titulo: "Levar a geleia e a história juntas",
+          assunto: "A participação em feiras e eventos de produtos de origem, contando o que aprendemos conversando com outros produtores e convidando quem quiser receber a gente." }
   };
   var GIRO = [
-    { tema: "Bastidor da produção da geleia", nota: "O tacho, o ponto certo, as etiquetas à mão" },
-    { tema: "Quem faz: uma das sete mulheres", nota: "A história de quem está por trás do pote" },
-    { tema: "A sede nova e a área de plantio", nota: "Convite para visita técnica agendada" },
-    { tema: "Como usar a geleia à mesa", nota: "Receita curta com queijo, carne ou pão" },
-    { tema: "De onde vem a pimenta biquinho", nota: "Do plantio próprio até o pote" }
+    { tema: "Bastidor da produção da geleia", nota: "O tacho, o ponto certo, as etiquetas à mão",
+      titulo: "O ponto certo a gente conhece no olho",
+      assunto: "O bastidor da produção: lavar os potes, espremer a laranja, mexer o tacho, acertar o ponto e colar as etiquetas à mão. Mostrar que cada etapa passa pela mão de alguém." },
+    { tema: "Quem faz: uma das sete mulheres", nota: "A história de quem está por trás do pote",
+      titulo: "Somos sete, e cada pote passa por todas",
+      assunto: "Quem são as mulheres da associação e como a produção virou também um encontro, onde a gente conversa e se ajuda. Falar da união que atravessou o deslocamento de 2015." },
+    { tema: "A sede nova e a área de plantio", nota: "Convite para visita técnica agendada",
+      titulo: "A sede é nossa, e a porta está aberta",
+      assunto: "A sede definitiva no Novo Bento Rodrigues, recebida em novembro de 2025, com espaço de produção, recebimento e eventos. Convidar para visita técnica agendada." },
+    { tema: "Como usar a geleia à mesa", nota: "Receita curta com queijo, carne ou pão",
+      titulo: "Com queijo, com carne, com pão quente",
+      assunto: "Maneiras simples de usar a geleia de pimenta biquinho à mesa, sem receita complicada. Terminar convidando a encomendar." },
+    { tema: "De onde vem a pimenta biquinho", nota: "Do plantio próprio até o pote",
+      titulo: "Do nosso plantio até o seu pote",
+      assunto: "O caminho da pimenta: plantio próprio, colheita, lavagem, salmoura, tacho e pote. Mostrar que dá para saber exatamente de onde vem o que você come." }
   ];
   (function pintaCal() {
     var d = new Date(); d.setHours(9, 0, 0, 0);
@@ -899,7 +960,9 @@
     datas.forEach(function (dt, i) {
       var s = SAZONAL[dt.getMonth() + 1];
       var base = (s && i % 3 === 0) ? s : GIRO[i % GIRO.length];
-      var item = document.createElement("div"); item.className = "cal-item";
+      var item = document.createElement("button");
+      item.type = "button"; item.className = "cal-item";
+      item.title = "clique para montar este post";
       var dd = document.createElement("div"); dd.className = "cal-data";
       dd.textContent = dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
       var t = document.createElement("div"); t.className = "cal-tema";
@@ -907,6 +970,12 @@
       var e = document.createElement("em"); e.textContent = base.nota;
       t.appendChild(e);
       item.appendChild(dd); item.appendChild(t);
+      item.addEventListener("click", function () {
+        elTitulo.value = base.titulo || base.tema;
+        elAssunto.value = base.assunto || base.nota;
+        criarPost();
+        elTitulo.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
       elCal.appendChild(item);
     });
   })();
