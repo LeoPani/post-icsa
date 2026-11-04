@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Post-Icsa: suba a foto, escreva o que quer contar e veja o post sair na identidade da AHOBERO.">
+<meta property="og:title" content="Post-Icsa">
+<meta property="og:description" content="O post pronto da AHOBERO a partir da foto como ela saiu do celular.">
+<title>Post-Icsa ao vivo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap">
+<style>
+  /* Demonstração sem login: tudo roda no navegador de quem abre.
+     Entrada à esquerda, post à direita; empilha no telefone. */
+  :root {
+    --paper: #F6F4EE; --ink: #141414; --red: #DF3117; --blue: #1E4DA0;
+    --yellow: #F5BE00; --muted: #8A877F; --campo: #FFFFFF; --suave: #EDEAE1;
+    --ah-verde: #1B6957; --ah-creme: #DCC8AF; --ah-geleia: #8C2F26;
+    --line: 3px solid var(--ink);
+    --font: "Archivo", "Segoe UI", Helvetica, Arial, sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper); color: var(--ink); font-family: var(--font); margin: 0;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 24px 48px;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-bottom: 20px; }
+  .mark { width: 72px; height: 72px; flex: none; }
+  .mark .ln { fill: var(--ink); }
+  .nota { transform-box: fill-box; transform-origin: center; }
+  h1 { font-size: clamp(28px, 5.5vw, 40px); font-weight: 800; letter-spacing: -0.035em; margin: 0; line-height: 1; }
+  .tag { color: var(--muted); font-size: 13.5px; margin: 5px 0 0; max-width: 58ch; line-height: 1.45; }
+
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+  @media (max-width: 880px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+  .painel { border: var(--line); background: var(--paper); min-width: 0; }
+  .painel + .painel { margin-top: 22px; }
+  .cab { border-bottom: var(--line); padding: 11px 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .quad { width: 13px; height: 13px; flex: none; border: 2px solid var(--ink); }
+  .q-am { background: var(--yellow); } .q-az { background: var(--blue); } .q-vm { background: var(--red); }
+  .cab h2 { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; margin: 0; }
+  .cab .dir { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 600; }
+  .corpo { padding: 15px; display: grid; gap: 14px; }
+
+  label.campo { display: grid; gap: 7px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .solta {
+    border: var(--line); border-style: dashed; background: transparent; color: var(--ink);
+    padding: 20px 14px; text-align: center; cursor: pointer; font-family: var(--font);
+    font-size: 14px; font-weight: 700; width: 100%; display: grid; gap: 5px; justify-items: center;
+  }
+  .solta:hover { background: var(--suave); }
+  .solta[data-cheia="1"] { border-style: solid; background: var(--suave); }
+  .solta.sobre { background: var(--yellow); }
+  .solta small { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .minis { display: flex; gap: 7px; flex-wrap: wrap; }
+  .minis img { width: 50px; height: 50px; object-fit: cover; border: 2px solid var(--ink); display: block; cursor: pointer; }
+  .minis img[data-sel="1"] { outline: 3px solid var(--red); outline-offset: 2px; }
+
+  input[type="text"], textarea {
+    font-family: var(--font); font-size: 15px; line-height: 1.5; color: var(--ink);
+    background: var(--campo); border: 2px solid var(--ink); padding: 11px; width: 100%;
+  }
+  textarea { min-height: 96px; resize: vertical; }
+  button, a.botao {
+    font-family: var(--font); cursor: pointer; border: 2px solid var(--ink); background: transparent;
+    color: var(--ink); font-size: 13px; font-weight: 700; padding: 9px 13px; text-decoration: none;
+    display: inline-block; text-align: center;
+  }
+  button:hover, a.botao:hover { background: var(--yellow); }
+  button[disabled] { color: var(--muted); border-color: var(--muted); cursor: default; background: transparent; }
+  button.forte { background: var(--red); color: #fff; border: var(--line); font-size: 16px; font-weight: 800; padding: 13px 18px; width: 100%; }
+  button.forte:hover { background: #B82812; }
+  button:focus-visible, a.botao:focus-visible, textarea:focus-visible, input:focus-visible, .solta:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+  .palco { padding: 15px; display: grid; gap: 12px; }
+  .quadro { position: relative; border: var(--line); aspect-ratio: 1 / 1; background: var(--suave); overflow: hidden; }
+  .quadro canvas { width: 100%; height: 100%; display: block; }
+  .vazio { position: absolute; inset: 0; display: grid; place-content: center; gap: 12px; justify-items: center; text-align: center; padding: 22px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .legenda { border: 2px solid var(--ink); padding: 11px; font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; min-height: 72px; background: var(--campo); }
+  .legenda[data-vazia="1"] { color: var(--muted); }
+  .linha { display: flex; gap: 8px; flex-wrap: wrap; }
+  .dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .aviso { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 0; }
+  .aviso b { color: var(--red); font-weight: 800; }
+
+  .cal { padding: 15px; display: grid; gap: 9px; }
+  .cal-item { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 11px; align-items: start; border-bottom: 1px solid var(--suave); padding-bottom: 9px; }
+  .cal-item:last-child { border-bottom: 0; padding-bottom: 0; }
+  .cal-data { font-size: 11.5px; font-weight: 800; letter-spacing: 0.04em; color: var(--ink); padding-top: 2px; font-variant-numeric: tabular-nums; }
+  .cal-tema { font-size: 13px; line-height: 1.45; }
+  .cal-tema em { font-style: normal; color: var(--muted); display: block; font-size: 11.5px; margin-top: 2px; }
+
+  .cola { animation: cola 620ms cubic-bezier(.2,.9,.25,1.08) both; }
+  .cola-1 { animation-delay: 60ms; } .cola-2 { animation-delay: 220ms; } .cola-3 { animation-delay: 380ms; }
+  @keyframes cola {
+    0% { opacity: 0; transform: translate(42px,-56px) rotate(16deg) scale(1.18); }
+    70% { opacity: 1; transform: translate(0,0) rotate(-3deg) scale(1.02); }
+    100% { opacity: 1; transform: none; }
+  }
+  .nota-carga { display: flex; gap: 9px; }
+  .nota-carga i { width: 20px; height: 20px; border: 2px solid var(--ink); display: block; }
+  .nc1 { background: var(--yellow); } .nc2 { background: var(--red); } .nc3 { background: var(--blue); }
+  .pulsa i { animation: pulsa 1.1s ease-in-out infinite; }
+  .pulsa i:nth-child(2) { animation-delay: .16s; } .pulsa i:nth-child(3) { animation-delay: .32s; }
+  @keyframes pulsa { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-6px) rotate(-4deg); } }
+  @media (prefers-reduced-motion: reduce) { .cola, .pulsa i { animation: none !important; opacity: 1 !important; transform: none !important; } }
+</style>
+<style>html{color-scheme:light}body{font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <svg class="mark" viewBox="0 0 512 512" aria-hidden="true">
+      <rect x="26" y="26" width="460" height="460" fill="#F6F4EE"></rect>
+      <rect x="26" y="26" width="460" height="460" fill="none" stroke="#141414" stroke-width="11"></rect>
+      <rect class="ln" x="194.5" y="26" width="11" height="460"></rect>
+      <rect class="ln" x="351.5" y="178" width="11" height="308"></rect>
+      <rect class="ln" x="26" y="172.5" width="460" height="11"></rect>
+      <rect class="ln" x="200" y="343.5" width="286" height="11"></rect>
+      <g class="nota cola cola-1" transform="rotate(-6 165 320)">
+        <polygon points="92,232 266,244 264,350 90,338" fill="#F5BE00" stroke="#141414" stroke-width="11"></polygon>
+        <polygon points="90,338 264,350 276,390 78,378" fill="#F6F4EE" stroke="#141414" stroke-width="11"></polygon>
+      </g>
+      <g class="nota cola cola-2" transform="rotate(8 374 162)">
+        <polygon points="296,86 452,86 452,238 296,238" fill="#DF3117" stroke="#141414" stroke-width="11"></polygon>
+        <polygon points="452,180 394,238 452,238" fill="#F6F4EE" stroke="#141414" stroke-width="11"></polygon>
+      </g>
+      <g class="nota cola cola-3" transform="rotate(-12 368 389)">
+        <polygon points="288,300 448,308 446,432 286,424" fill="#1E4DA0" stroke="#141414" stroke-width="11"></polygon>
+        <polygon points="286,424 446,432 452,460 280,452" fill="#F6F4EE" stroke="#141414" stroke-width="11"></polygon>
+      </g>
+    </svg>
+    <div>
+      <h1>post-icsa</h1>
+      <p class="tag">Suba a foto como ela saiu do celular, escreva o que quer contar e veja o post sair na identidade da AHOBERO. Tudo acontece no seu navegador: sem conta, sem instalar nada.</p>
+    </div>
+  </header>
+
+  <div class="cols">
+    <div>
+      <section class="painel">
+        <div class="cab"><span class="quad q-am"></span><h2>O material</h2></div>
+        <div class="corpo">
+          <label class="campo" for="arq">Foto
+            <button type="button" class="solta" id="solta">
+              <span id="rotulo">Escolher ou arrastar foto</span>
+              <small>JPEG ou PNG, direto do aparelho. Clique numa miniatura para escolher a que vai no post.</small>
+            </button>
+          </label>
+          <input type="file" id="arq" accept="image/*" multiple hidden>
+          <div class="minis" id="minis"></div>
+
+          <label class="campo" for="titulo">Título que vai impresso na arte
+            <input type="text" id="titulo" maxlength="80" placeholder="A primeira colheita que é nossa">
+          </label>
+
+          <label class="campo" for="legenda-in">Legenda da publicação
+            <textarea id="legenda-in" placeholder="Colhemos quase duas toneladas de pimenta biquinho na nossa própria área de plantio, a primeira desde que recebemos a sede no Novo Bento Rodrigues. Venha nos visitar."></textarea>
+          </label>
+
+          <button class="forte" id="criar" type="button">criar post</button>
+          <p class="aviso" id="estado">Nesta demonstração os textos são seus. Na versão completa, um serviço escreve título e legenda a partir dos dados reais da associação e recusa número inventado.</p>
+        </div>
+      </section>
+
+      <section class="painel">
+        <div class="cab"><span class="quad q-am"></span><h2>Calendário sugerido</h2><span class="dir">terças e sextas</span></div>
+        <div class="cal" id="cal"></div>
+      </section>
+    </div>
+
+    <div>
+      <section class="painel">
+        <div class="cab"><span class="quad q-az"></span><h2>O post</h2><span class="dir">1080 × 1080</span></div>
+        <div class="palco">
+          <div class="quadro">
+            <canvas id="tela" width="1080" height="1080" hidden></canvas>
+            <div class="vazio" id="vazio">
+              <div class="nota-carga" id="carga" aria-hidden="true"><i class="nc1"></i><i class="nc2"></i><i class="nc3"></i></div>
+              <span id="msgVazio">O post aparece aqui, na identidade da AHOBERO.</span>
+            </div>
+          </div>
+          <div class="legenda" id="legenda" data-vazia="1">A legenda aparece aqui, pronta para copiar.</div>
+          <div class="linha">
+            <button id="copiar" type="button" disabled>copiar legenda</button>
+            <button id="salvar" type="button" disabled>salvar no histórico</button>
+          </div>
+          <div class="dupla">
+            <a class="botao" id="irInsta" href="https://www.instagram.com/" target="_blank" rel="noopener">postar no Instagram</a>
+            <a class="botao" id="irTiktok" href="https://www.tiktok.com/upload" target="_blank" rel="noopener">postar no TikTok</a>
+          </div>
+          <p class="aviso">Os dois botões copiam a legenda e abrem o site. O login e o envio da imagem são seus: <b>nada é publicado automaticamente</b>.</p>
+        </div>
+      </section>
+
+      <section class="painel">
+        <div class="cab"><span class="quad q-vm"></span><h2>Histórico desta sessão</h2><span class="dir" id="conta">vazio</span></div>
+        <div class="corpo" id="hist">
+          <p class="aviso">Os posts que você salvar ficam listados aqui enquanto a página estiver aberta.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (i) { return document.getElementById(i); };
+  var elArq = $("arq"), elSolta = $("solta"), elRotulo = $("rotulo"), elMinis = $("minis");
+  var elTitulo = $("titulo"), elLegIn = $("legenda-in"), elCriar = $("criar"), elEstado = $("estado");
+  var elTela = $("tela"), elVazio = $("vazio"), elMsgVazio = $("msgVazio"), elCarga = $("carga");
+  var elLegenda = $("legenda"), elCopiar = $("copiar"), elSalvar = $("salvar");
+  var elHist = $("hist"), elConta = $("conta"), elCal = $("cal");
+
+  var fotos = [], escolhida = 0, logo = null, atual = null, historico = [];
+
+  var im = new Image();
+  im.onload = function () { logo = im; };
+  im.src = "ahobero-logo.png";
+
+  /* ---------- fotos ---------- */
+  function pintaMinis() {
+    elMinis.textContent = "";
+    fotos.forEach(function (f, i) {
+      var t = new Image();
+      t.src = f.url; t.alt = "foto " + (i + 1);
+      t.title = "usar esta foto no post";
+      if (i === escolhida) t.setAttribute("data-sel", "1");
+      t.addEventListener("click", function () { escolhida = i; pintaMinis(); });
+      elMinis.appendChild(t);
+    });
+    var n = fotos.length;
+    elRotulo.textContent = n === 0 ? "Escolher ou arrastar foto"
+      : n === 1 ? "1 foto — trocar" : n + " fotos — trocar";
+    elSolta.setAttribute("data-cheia", n ? "1" : "0");
+  }
+
+  function aceita(lista) {
+    var arr = Array.prototype.slice.call(lista).filter(function (f) { return /^image\//.test(f.type); });
+    if (!arr.length) return;
+    fotos.forEach(function (f) { URL.revokeObjectURL(f.url); });
+    fotos = arr.slice(0, 6).map(function (b) { return { blob: b, url: URL.createObjectURL(b), img: null }; });
+    escolhida = 0;
+    fotos.forEach(function (f) {
+      var i2 = new Image();
+      i2.onload = function () { f.img = i2; };
+      i2.src = f.url;
+    });
+    pintaMinis();
+  }
+
+  elSolta.addEventListener("click", function () { elArq.click(); });
+  elArq.addEventListener("change", function () { aceita(elArq.files); });
+  ["dragenter", "dragover"].forEach(function (e) {
+    elSolta.addEventListener(e, function (ev) { ev.preventDefault(); elSolta.classList.add("sobre"); });
+  });
+  ["dragleave", "drop"].forEach(function (e) {
+    elSolta.addEventListener(e, function (ev) { ev.preventDefault(); elSolta.classList.remove("sobre"); });
+  });
+  elSolta.addEventListener("drop", function (ev) {
+    if (ev.dataTransfer && ev.dataTransfer.files) aceita(ev.dataTransfer.files);
+  });
+
+  /* ---------- arte ---------- */
+  function quebra(ctx, txt, larg) {
+    var p = txt.split(/\s+/), l = [], a = "";
+    for (var i = 0; i < p.length; i++) {
+      var t = a ? a + " " + p[i] : p[i];
+      if (ctx.measureText(t).width > larg && a) { l.push(a); a = p[i]; } else { a = t; }
+    }
+    if (a) l.push(a);
+    return l;
+  }
+
+  function compoe(titulo) {
+    var ctx = elTela.getContext("2d"), L = 1080, faixa = 348, af = L - faixa;
+    ctx.fillStyle = "#1B6957"; ctx.fillRect(0, 0, L, L);
+
+    var f = fotos[escolhida];
+    if (f && f.img) {
+      var k = Math.max(L / f.img.width, af / f.img.height);
+      var w = f.img.width * k, h = f.img.height * k;
+      ctx.drawImage(f.img, (L - w) / 2, (af - h) / 2, w, h);
+    } else {
+      ctx.fillStyle = "#DCC8AF"; ctx.fillRect(0, 0, L, af);
+      ctx.fillStyle = "#8C2F26";
+      ctx.beginPath(); ctx.arc(L / 2, af / 2, 150, 0, Math.PI * 2); ctx.fill();
+    }
+
+    ctx.fillStyle = "#1B6957"; ctx.fillRect(0, af, L, faixa);
+    ctx.fillStyle = "#8C2F26"; ctx.fillRect(0, af, L, 12);
+
+    var tam = 62, linhas;
+    do {
+      ctx.font = "800 " + tam + 'px Archivo, "Segoe UI", Helvetica, sans-serif';
+      linhas = quebra(ctx, titulo, L - 300);
+      if (linhas.length <= 3) break;
+      tam -= 4;
+    } while (tam > 32);
+    linhas = linhas.slice(0, 3);
+
+    ctx.fillStyle = "#DCC8AF"; ctx.textBaseline = "top";
+    var y = af + 72;
+    linhas.forEach(function (ln) { ctx.fillText(ln, 64, y); y += tam * 1.15; });
+
+    ctx.font = '600 25px Archivo, "Segoe UI", Helvetica, sans-serif';
+    ctx.fillStyle = "rgba(220,200,175,0.75)";
+    ctx.fillText("Bento Rodrigues · Mariana/MG", 64, af + faixa - 58);
+
+    if (logo) {
+      var lh = 118, lw = logo.width * (lh / logo.height);
+      var lx = L - 64 - lw, ly = af + faixa - lh - 54;
+      ctx.fillStyle = "#DCC8AF"; ctx.fillRect(lx - 16, ly - 14, lw + 32, lh + 28);
+      ctx.drawImage(logo, lx, ly, lw, lh);
+    }
+
+    elTela.hidden = false; elVazio.hidden = true;
+  }
+
+  elCriar.addEventListener("click", function () {
+    var titulo = elTitulo.value.trim();
+    var legenda = elLegIn.value.trim();
+    if (!titulo && !legenda && !fotos.length) {
+      elEstado.textContent = "Escolha uma foto ou escreva o título antes de criar.";
+      elTitulo.focus();
+      return;
+    }
+    if (!titulo) titulo = (legenda.split(/[.!?]/)[0] || "Geleia de pimenta biquinho").slice(0, 80);
+    if (!legenda) legenda = titulo;
+
+    elCarga.classList.add("pulsa");
+    elMsgVazio.textContent = "Montando...";
+    elCriar.disabled = true;
+
+    setTimeout(function () {
+      compoe(titulo);
+      atual = { titulo: titulo, legenda: legenda, url: elTela.toDataURL("image/jpeg", 0.85) };
+      elLegenda.removeAttribute("data-vazia");
+      elLegenda.textContent = legenda;
+      elCopiar.disabled = false;
+      elSalvar.disabled = false;
+      elCarga.classList.remove("pulsa");
+      elCriar.disabled = false;
+      elEstado.textContent = "Pronto. Copie a legenda, salve a imagem pelo aparelho e publique.";
+    }, 520);
+  });
+
+  /* ---------- histórico da sessão ---------- */
+  elSalvar.addEventListener("click", function () {
+    if (!atual) return;
+    historico.unshift(atual);
+    elConta.textContent = historico.length + " salvo" + (historico.length > 1 ? "s" : "");
+    elHist.textContent = "";
+    var linha = document.createElement("div");
+    linha.className = "minis";
+    historico.slice(0, 8).forEach(function (p) {
+      var t = new Image();
+      t.src = p.url; t.alt = p.titulo; t.title = p.titulo;
+      t.style.width = "62px"; t.style.height = "62px";
+      t.addEventListener("click", function () {
+        elLegenda.textContent = p.legenda;
+        elTitulo.value = p.titulo;
+        elLegIn.value = p.legenda;
+      });
+      linha.appendChild(t);
+    });
+    elHist.appendChild(linha);
+    var nota = document.createElement("p");
+    nota.className = "aviso";
+    nota.textContent = "Some ao fechar a página. Na versão completa o acervo fica guardado e alimenta as próximas sugestões.";
+    elHist.appendChild(nota);
+  });
+
+  /* ---------- copiar e publicar ---------- */
+  function copia() {
+    var t = elLegenda.textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(t).catch(function () {});
+    }
+    return Promise.resolve();
+  }
+
+  elCopiar.addEventListener("click", function () {
+    copia().then(function () {
+      elCopiar.textContent = "copiada";
+      setTimeout(function () { elCopiar.textContent = "copiar legenda"; }, 1600);
+    });
+  });
+
+  ["irInsta", "irTiktok"].forEach(function (id) {
+    $(id).addEventListener("click", function () {
+      if (!atual) { elEstado.textContent = "Crie um post antes de abrir a rede."; return; }
+      copia();
+      elEstado.textContent = "Legenda copiada. Escolha a imagem pelo aparelho ao chegar na rede.";
+    });
+  });
+
+  /* ---------- calendário ---------- */
+  var SAZONAL = {
+    7:  { tema: "Plantio da pimenta biquinho", nota: "O primeiro plantio próprio foi em julho de 2025" },
+    11: { tema: "Colheita da pimenta biquinho", nota: "Quase duas toneladas colhidas em 2025" },
+    12: { tema: "Geleia de fim de ano e encomendas", nota: "Período de maior procura por presentes" },
+    5:  { tema: "Feiras e visitas técnicas", nota: "O Connection Terroirs foi em maio" }
+  };
+  var GIRO = [
+    { tema: "Bastidor da produção da geleia", nota: "O tacho, o ponto certo, as etiquetas à mão" },
+    { tema: "Quem faz: uma das sete mulheres", nota: "A história de quem está por trás do pote" },
+    { tema: "A sede nova e a área de plantio", nota: "Convite para visita técnica agendada" },
+    { tema: "Como usar a geleia à mesa", nota: "Receita curta com queijo, carne ou pão" },
+    { tema: "De onde vem a pimenta biquinho", nota: "Do plantio próprio até o pote" }
+  ];
+
+  (function pintaCal() {
+    var d = new Date(); d.setHours(9, 0, 0, 0);
+    var datas = [];
+    while (datas.length < 6) {
+      d.setDate(d.getDate() + 1);
+      var dia = d.getDay();
+      if (dia === 2 || dia === 5) datas.push(new Date(d));
+    }
+    datas.forEach(function (dt, i) {
+      var s = SAZONAL[dt.getMonth() + 1];
+      var base = (s && i % 3 === 0) ? s : GIRO[i % GIRO.length];
+      var item = document.createElement("div"); item.className = "cal-item";
+      var dd = document.createElement("div"); dd.className = "cal-data";
+      dd.textContent = dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+      var t = document.createElement("div"); t.className = "cal-tema";
+      t.textContent = base.tema;
+      var e = document.createElement("em"); e.textContent = base.nota;
+      t.appendChild(e);
+      item.appendChild(dd); item.appendChild(t);
+      elCal.appendChild(item);
+    });
+  })();
+})();
+</script>
+
+</body>
+</html>
