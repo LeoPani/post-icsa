@@ -228,18 +228,8 @@
             <textarea id="assunto" placeholder="A colheita de pimenta biquinho da nossa área de plantio, o trabalho das sete mulheres e o convite para visitar a sede."></textarea>
           </label>
 
-          <details id="caixaIA">
-            <summary>Legenda automática (opcional)</summary>
-            <div class="dentro">
-              <label class="campo" for="chave">Sua chave da Groq
-                <input type="password" id="chave" placeholder="gsk_..." autocomplete="off" spellcheck="false">
-              </label>
-              <p class="aviso">A chave fica só no seu navegador e vai direto para a Groq. <b>Nunca digite isso numa tela projetada.</b> Sem chave, a legenda é montada aqui mesmo, a partir dos dados reais da associação.</p>
-            </div>
-          </details>
-
           <button class="forte" id="criar" type="button">criar post</button>
-          <p class="aviso" id="estado">A legenda usa só os fatos reais da associação e nunca afirma que a Indicação Geográfica foi concedida.</p>
+          <p class="aviso" id="estado">A legenda é escrita pelo serviço com os dados reais da associação, e nunca afirma que a Indicação Geográfica foi concedida.</p>
         </div>
       </section>
 
@@ -329,7 +319,8 @@
   var elQuadro = $("quadro"), elVazio = $("vazio"), elMsgVazio = $("msgVazio"), elCarga = $("carga");
   var elLegenda = $("legenda"), elCopiar = $("copiar"), elBaixar = $("baixar"), elBaixarTodas = $("baixarTodas");
   var elNav = $("nav"), elConta = $("conta"), elDim = $("dim"), elCal = $("cal");
-  var elCarrossel = $("carrossel"), elChave = $("chave"), elCal2 = $("cal");
+  var elCarrossel = $("carrossel");
+  var SERVICO = "https://post-icsa.leopani.workers.dev";
 
   var FORMATOS = {
     quadrado: { w: 1080, h: 1080, nome: "1080 × 1080" },
@@ -362,10 +353,16 @@
   im.onload = function () { logo = im; };
   im.src = "ahobero-logo.png";
 
-  try { var g = localStorage.getItem("posticsa_groq"); if (g) { elChave.value = g; $("caixaIA").open = true; } } catch (e) {}
-  elChave.addEventListener("change", function () {
-    try { localStorage.setItem("posticsa_groq", elChave.value.trim()); } catch (e) {}
-  });
+  async function pedeAoServico(sistema, usuario) {
+    var r = await fetch(SERVICO, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sistema: sistema, usuario: usuario })
+    });
+    var j = await r.json().catch(function () { return {}; });
+    if (!r.ok || !j.texto) throw new Error(j.erro || "serviço indisponível");
+    return String(j.texto).trim();
+  }
 
   /* ---------- fotos ---------- */
   function pintaMinis() {
@@ -546,32 +543,13 @@
     return abre + " " + meio + " " + fecha + "\n\n#AHOBERO #BentoRodrigues #PimentaBiquinho";
   }
 
-  async function legendaGroq(chave, assunto, titulo) {
-    var r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + chave },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.7,
-        max_tokens: 500,
-        messages: [
-          { role: "system", content: REGRAS + "\n\nFATOS:\n" + FATOS },
-          { role: "user", content: "Titulo do post: " + (titulo || "(sem titulo)") +
-              "\nO que contar: " + (assunto || "Apresentar a geleia e a associacao.") }
-        ]
-      })
-    });
-    if (!r.ok) {
-      var corpo = await r.text().catch(function () { return ""; });
-      var e = new Error(r.status === 401 ? "chave recusada" : "erro " + r.status);
-      e.detalhe = corpo.slice(0, 160);
-      throw e;
-    }
-    var j = await r.json();
-    var txt = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
-    if (!txt) throw new Error("resposta vazia");
-    txt = txt.trim();
-    if (/indica[cç][aã]o geogr[aá]fica (concedid|aprovad|obtid)/i.test(txt))
+  async function legendaServico(assunto, titulo) {
+    var txt = await pedeAoServico(
+      REGRAS + "\n\nFATOS:\n" + FATOS,
+      "Titulo do post: " + (titulo || "(sem titulo)") +
+      "\nO que contar: " + (assunto || "Apresentar a geleia e a associacao.")
+    );
+    if (/indica[c\u00e7][a\u00e3]o geogr[a\u00e1]fica (concedid|aprovad|obtid)/i.test(txt))
       throw new Error("a legenda afirmava que a IG foi concedida");
     return txt;
   }
@@ -606,19 +584,13 @@
     }
     mostra(0);
 
-    var chave = elChave.value.trim();
-    if (chave) {
-      elEstado.textContent = "Escrevendo a legenda com a Groq...";
-      try {
-        legendaAtual = await legendaGroq(chave, assunto, titulo);
-        elEstado.textContent = "Legenda escrita pela Groq. Confira antes de publicar.";
-      } catch (e) {
-        legendaAtual = legendaLocal(assunto, titulo);
-        elEstado.textContent = "A Groq não respondeu (" + e.message + "). Usei a legenda montada aqui.";
-      }
-    } else {
+    elEstado.textContent = "Escrevendo a legenda...";
+    try {
+      legendaAtual = await legendaServico(assunto, titulo);
+      elEstado.textContent = "Legenda escrita. Confira antes de publicar: quem aprova o texto é a associação.";
+    } catch (e) {
       legendaAtual = legendaLocal(assunto, titulo);
-      elEstado.textContent = "Legenda montada com os dados da associação. Para a escrita automática, abra “Legenda automática”.";
+      elEstado.textContent = "A escrita automática não respondeu (" + e.message + "). Usei a legenda montada aqui mesmo.";
     }
 
     elLegenda.removeAttribute("data-vazia");
@@ -832,21 +804,14 @@
     var assunto = material || "Apresentar a geleia e a associacao.";
     var titulo = "";
 
-    var chave = elChave.value.trim();
-    if (chave) {
-      try {
-        var r = await tituloELegendaGroq(chave, assunto);
-        titulo = r.titulo; legendaAtual = r.legenda;
-        elEstadoBanco.textContent = "Post gerado a partir do banco, com a Groq.";
-      } catch (e) {
-        titulo = (txts[0] && txts[0].texto.split(/[.!?]/)[0].slice(0, 70)) || "Geleia de pimenta biquinho";
-        legendaAtual = legendaLocal(assunto, titulo);
-        elEstadoBanco.textContent = "A Groq não respondeu (" + e.message + "). Gerei com o material do banco.";
-      }
-    } else {
+    try {
+      var r = await postDoBanco(assunto);
+      titulo = r.titulo; legendaAtual = r.legenda;
+      elEstadoBanco.textContent = "Post gerado a partir do banco.";
+    } catch (e) {
       titulo = (txts[0] && txts[0].texto.split(/[.!?]/)[0].slice(0, 70)) || "Geleia de pimenta biquinho";
       legendaAtual = legendaLocal(assunto, titulo);
-      elEstadoBanco.textContent = "Post gerado com o material do banco.";
+      elEstadoBanco.textContent = "A escrita automática não respondeu (" + e.message + "). Gerei com o material do banco.";
     }
 
     var usadas = elCarrossel.checked ? imgs.slice(0, 10) : imgs.slice(0, 1);
@@ -869,28 +834,16 @@
     b.disabled = false; b.textContent = "gerar post agora";
   });
 
-  async function tituloELegendaGroq(chave, assunto) {
-    var r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + chave },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.7, max_tokens: 600,
-        messages: [
-          { role: "system", content: REGRAS + "\n\nFATOS:\n" + FATOS +
-            "\n\nResponda SOMENTE com um objeto JSON {\"titulo\": string de ate 70 caracteres, \"legenda\": string}." },
-          { role: "user", content: "Material guardado pela associacao:\n" + assunto +
-            "\n\nEscolha o angulo mais forte e escreva o post." }
-        ]
-      })
-    });
-    if (!r.ok) throw new Error(r.status === 401 ? "chave recusada" : "erro " + r.status);
-    var j = await r.json();
-    var txt = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content || "").trim();
+  async function postDoBanco(assunto) {
+    var txt = await pedeAoServico(
+      REGRAS + "\n\nFATOS:\n" + FATOS +
+      "\n\nResponda SOMENTE com um objeto JSON {\"titulo\": string de ate 70 caracteres, \"legenda\": string}.",
+      "Material guardado pela associacao:\n" + assunto + "\n\nEscolha o angulo mais forte e escreva o post."
+    );
     var m = txt.match(/\{[\s\S]*\}/);
     if (!m) throw new Error("resposta fora do formato");
     var o = JSON.parse(m[0]);
-    if (/indica[cç][aã]o geogr[aá]fica (concedid|aprovad|obtid)/i.test(o.legenda || ""))
+    if (/indica[c\u00e7][a\u00e3]o geogr[a\u00e1]fica (concedid|aprovad|obtid)/i.test(o.legenda || ""))
       throw new Error("a legenda afirmava que a IG foi concedida");
     return { titulo: String(o.titulo || "").slice(0, 80), legenda: String(o.legenda || "") };
   }
