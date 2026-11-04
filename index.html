@@ -121,6 +121,24 @@
     width: 268px; margin: 0 auto; border: 4px solid var(--ink); background: var(--campo);
     display: grid; gap: 0; position: relative;
   }
+  .fone-status {
+    display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-bottom: 2px solid var(--ink);
+    font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums;
+  }
+  .fone-status i { width: 7px; height: 7px; background: var(--ink); display: block; margin-left: auto; }
+  .fone-status i + i { margin-left: 0; }
+  .fone-status .bat { width: 15px; height: 8px; border: 2px solid var(--ink); background: transparent; }
+  .fone-perfil {
+    display: flex; align-items: center; gap: 7px; padding: 7px 10px; border-bottom: 3px solid var(--ink);
+  }
+  .fone-perfil .av { width: 22px; height: 22px; border: 2px solid var(--ink); background: var(--ah-verde); display: block; }
+  .fone-perfil b { font-size: 11.5px; font-weight: 800; }
+  .fone-perfil em { font-style: normal; font-size: 10px; color: var(--muted); margin-left: auto; }
+  .fone-acoes { display: flex; gap: 10px; padding: 8px 10px; border-bottom: 3px solid var(--ink); }
+  .fone-acoes span { width: 16px; height: 16px; border: 2px solid var(--ink); display: block; }
+  .fone-acoes .cor { background: var(--red); transform: rotate(45deg); }
+  .fone-acoes .bal { border-radius: 0; background: var(--campo); }
+  .fone-acoes .env { background: var(--yellow); clip-path: polygon(0 0, 100% 50%, 0 100%, 25% 50%); border: 0; }
   .fone-topo { border-bottom: 3px solid var(--ink); padding: 9px 10px; display: flex; align-items: center; gap: 9px; }
   .fone-topo .barra { width: 34px; height: 4px; background: var(--ink); display: block; }
   .fone-topo b { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
@@ -310,11 +328,13 @@
             <div class="dentro">
               <div class="palco-sim" id="palcoSim">
                 <div class="fone">
+                  <div class="fone-status"><span>9:41</span><i></i><i></i><i class="bat"></i></div>
                   <div class="fone-topo"><span class="barra"></span><b id="simTopo">nova publicação</b></div>
+                  <div class="fone-perfil"><span class="av"></span><b>@ahobero</b><em>Bento Rodrigues, Mariana</em></div>
                   <div class="fone-img" id="simImg"><span>o post entra aqui</span></div>
                   <div class="fone-leg" id="simLeg">a legenda entra aqui</div>
+                  <div class="fone-acoes"><span class="cor"></span><span class="bal"></span><span class="env"></span></div>
                   <div class="fone-bt" id="simBt">publicar</div>
-                </div>
                 </div>
                 <div class="cursor" id="cursorSim" aria-hidden="true">
                   <svg viewBox="0 0 24 24" width="58" height="58"><polygon points="3,2 3,20 8,15 11,22 14,21 11,14 18,14" fill="#141414" stroke="#F6F4EE" stroke-width="1.5"></polygon></svg>
@@ -375,6 +395,15 @@
   var im = new Image();
   im.onload = function () { logo = im; };
   im.src = "ahobero-logo.png";
+
+  function carregaImagemURL(src) {
+    return new Promise(function (res) {
+      var i = new Image();
+      i.onload = function () { res(i); };
+      i.onerror = function () { res(null); };
+      i.src = src;
+    });
+  }
 
   function paraDataURL(img, lado) {
     var k = Math.min(1, lado / Math.max(img.width, img.height));
@@ -920,33 +949,33 @@
   /* ---------- calendário ---------- */
   var SAZONAL = {
     7:  { tema: "Plantio da pimenta biquinho", nota: "O primeiro plantio próprio foi em julho de 2025",
-          titulo: "O plantio que nos devolveu a terra",
+          foto: "fotos/potes.jpg", titulo: "O plantio que nos devolveu a terra",
           assunto: "O plantio da pimenta biquinho na área que recebemos, contando que até 2025 a matéria-prima vinha de fornecedor e hoje vem do nosso próprio chão. Falar do significado de plantar de novo em Bento Rodrigues." },
     11: { tema: "Colheita da pimenta biquinho", nota: "Quase duas toneladas colhidas em 2025",
-          titulo: "A primeira colheita que é nossa",
+          foto: "fotos/potes.jpg", titulo: "A primeira colheita que é nossa",
           assunto: "A colheita da pimenta biquinho na nossa área de plantio, a primeira desde que recebemos a sede definitiva. Falar do trabalho das sete mulheres e convidar para visitar a sede." },
     12: { tema: "Geleia de fim de ano e encomendas", nota: "Período de maior procura por presentes",
-          titulo: "Geleia de presente, história junto",
+          foto: "fotos/potes.jpg", titulo: "Geleia de presente, história junto",
           assunto: "A geleia como presente de fim de ano, falando do pote de 150 g, do preço e de como encomendar com antecedência. Lembrar que cada pote é feito à mão por nós." },
     5:  { tema: "Feiras e visitas técnicas", nota: "O Connection Terroirs foi em maio",
-          titulo: "Levar a geleia e a história juntas",
+          foto: "fotos/sede.jpg", titulo: "Levar a geleia e a história juntas",
           assunto: "A participação em feiras e eventos de produtos de origem, contando o que aprendemos conversando com outros produtores e convidando quem quiser receber a gente." }
   };
   var GIRO = [
     { tema: "Bastidor da produção da geleia", nota: "O tacho, o ponto certo, as etiquetas à mão",
-      titulo: "O ponto certo a gente conhece no olho",
+      foto: "fotos/potes.jpg", titulo: "O ponto certo a gente conhece no olho",
       assunto: "O bastidor da produção: lavar os potes, espremer a laranja, mexer o tacho, acertar o ponto e colar as etiquetas à mão. Mostrar que cada etapa passa pela mão de alguém." },
     { tema: "Quem faz: uma das sete mulheres", nota: "A história de quem está por trás do pote",
-      titulo: "Somos sete, e cada pote passa por todas",
+      foto: "fotos/sede.jpg", titulo: "Somos sete, e cada pote passa por todas",
       assunto: "Quem são as mulheres da associação e como a produção virou também um encontro, onde a gente conversa e se ajuda. Falar da união que atravessou o deslocamento de 2015." },
     { tema: "A sede nova e a área de plantio", nota: "Convite para visita técnica agendada",
-      titulo: "A sede é nossa, e a porta está aberta",
+      foto: "fotos/sede.jpg", titulo: "A sede é nossa, e a porta está aberta",
       assunto: "A sede definitiva no Novo Bento Rodrigues, recebida em novembro de 2025, com espaço de produção, recebimento e eventos. Convidar para visita técnica agendada." },
     { tema: "Como usar a geleia à mesa", nota: "Receita curta com queijo, carne ou pão",
-      titulo: "Com queijo, com carne, com pão quente",
+      foto: "fotos/potes.jpg", titulo: "Com queijo, com carne, com pão quente",
       assunto: "Maneiras simples de usar a geleia de pimenta biquinho à mesa, sem receita complicada. Terminar convidando a encomendar." },
     { tema: "De onde vem a pimenta biquinho", nota: "Do plantio próprio até o pote",
-      titulo: "Do nosso plantio até o seu pote",
+      foto: "fotos/potes.jpg", titulo: "Do nosso plantio até o seu pote",
       assunto: "O caminho da pimenta: plantio próprio, colheita, lavagem, salmoura, tacho e pote. Mostrar que dá para saber exatamente de onde vem o que você come." }
   ];
   (function pintaCal() {
@@ -970,9 +999,17 @@
       var e = document.createElement("em"); e.textContent = base.nota;
       t.appendChild(e);
       item.appendChild(dd); item.appendChild(t);
-      item.addEventListener("click", function () {
+      item.addEventListener("click", async function () {
         elTitulo.value = base.titulo || base.tema;
         elAssunto.value = base.assunto || base.nota;
+        if (!selecao.length && base.foto) {
+          var pronta = await carregaImagemURL(base.foto);
+          if (pronta) {
+            fotos.push({ blob: null, url: base.foto, img: pronta });
+            selecao = [fotos.length - 1];
+            pintaMinis();
+          }
+        }
         criarPost();
         elTitulo.scrollIntoView({ behavior: "smooth", block: "center" });
       });
