@@ -183,6 +183,34 @@
   .cal-tema { font-size: 13px; line-height: 1.45; }
   .cal-tema em { font-style: normal; color: var(--muted); display: block; font-size: 11.5px; margin-top: 2px; }
 
+  /* ---------- abertura ---------- */
+  #abertura {
+    position: fixed; inset: 0; z-index: 90; background: var(--paper);
+    display: grid; place-content: center; justify-items: center; gap: 26px;
+    transition: opacity 520ms ease, visibility 520ms;
+  }
+  #abertura[data-fim="1"] { opacity: 0; visibility: hidden; }
+  #abertura .marcao { width: min(62vw, 340px); height: min(62vw, 340px); }
+  #abertura .palavra {
+    font-size: clamp(34px, 9vw, 64px); font-weight: 800; letter-spacing: -0.04em;
+    opacity: 0; animation: surge 520ms ease 980ms forwards;
+  }
+  #abertura .frase {
+    font-size: 13px; color: var(--muted); opacity: 0; letter-spacing: 0.04em;
+    animation: surge 520ms ease 1240ms forwards; text-align: center; max-width: 30ch; line-height: 1.5;
+  }
+  @keyframes surge { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .notona { transform-box: fill-box; transform-origin: center; opacity: 0; }
+  .n1 { animation: colaG 700ms cubic-bezier(.2,.9,.25,1.06) 120ms both; }
+  .n2 { animation: colaG 700ms cubic-bezier(.2,.9,.25,1.06) 380ms both; }
+  .n3 { animation: colaG 700ms cubic-bezier(.2,.9,.25,1.06) 640ms both; }
+  @keyframes colaG {
+    0%   { opacity: 0; transform: translate(150px, -200px) rotate(34deg) scale(1.5); }
+    68%  { opacity: 1; transform: translate(0,0) rotate(-6deg) scale(1.05); }
+    100% { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { #abertura { display: none; } }
+
   .cola { animation: cola 620ms cubic-bezier(.2,.9,.25,1.08) both; }
   .cola-1 { animation-delay: 60ms; } .cola-2 { animation-delay: 220ms; } .cola-3 { animation-delay: 380ms; }
   @keyframes cola {
@@ -202,6 +230,31 @@
 </head>
 <body>
 
+
+<div id="abertura" role="status" aria-label="abrindo o post-icsa">
+  <svg class="marcao" viewBox="0 0 512 512" aria-hidden="true">
+    <rect x="26" y="26" width="460" height="460" fill="#F6F4EE"></rect>
+    <rect x="26" y="26" width="460" height="460" fill="none" stroke="#141414" stroke-width="11"></rect>
+    <rect x="194.5" y="26" width="11" height="460" fill="#141414"></rect>
+    <rect x="351.5" y="178" width="11" height="308" fill="#141414"></rect>
+    <rect x="26" y="172.5" width="460" height="11" fill="#141414"></rect>
+    <rect x="200" y="343.5" width="286" height="11" fill="#141414"></rect>
+    <g class="notona n1" transform="rotate(-6 165 320)">
+      <polygon points="92,232 266,244 264,350 90,338" fill="#F5BE00" stroke="#141414" stroke-width="11"></polygon>
+      <polygon points="90,338 264,350 276,390 78,378" fill="#F6F4EE" stroke="#141414" stroke-width="11"></polygon>
+    </g>
+    <g class="notona n2" transform="rotate(8 374 162)">
+      <polygon points="296,86 452,86 452,238 296,238" fill="#DF3117" stroke="#141414" stroke-width="11"></polygon>
+      <polygon points="452,180 394,238 452,238" fill="#F6F4EE" stroke="#141414" stroke-width="11"></polygon>
+    </g>
+    <g class="notona n3" transform="rotate(-12 368 389)">
+      <polygon points="288,300 448,308 446,432 286,424" fill="#1E4DA0" stroke="#141414" stroke-width="11"></polygon>
+      <polygon points="286,424 446,432 452,460 280,452" fill="#F6F4EE" stroke="#141414" stroke-width="11"></polygon>
+    </g>
+  </svg>
+  <div class="palavra">post-icsa</div>
+  <p class="frase">o post pronto da AHOBERO, a partir da foto como ela saiu do celular</p>
+</div>
 
 <div class="wrap">
   <header>
@@ -357,6 +410,21 @@
 (function () {
   "use strict";
   var $ = function (i) { return document.getElementById(i); };
+
+  /* ---------- abertura: some sozinha, ou ao primeiro toque ---------- */
+  (function () {
+    var cap = $("abertura");
+    if (!cap) return;
+    var fim = function () { cap.setAttribute("data-fim", "1"); setTimeout(function () { cap.remove(); }, 600); };
+    var t = setTimeout(fim, 2150);
+    ["click", "keydown", "touchstart"].forEach(function (ev) {
+      window.addEventListener(ev, function once() {
+        clearTimeout(t); fim();
+        ["click", "keydown", "touchstart"].forEach(function (e2) { window.removeEventListener(e2, once); });
+      }, { once: true });
+    });
+  })();
+
   var elArq = $("arq"), elSolta = $("solta"), elRotulo = $("rotulo"), elMinis = $("minis");
   var elTitulo = $("titulo"), elAssunto = $("assunto"), elCriar = $("criar"), elEstado = $("estado");
   var elQuadro = $("quadro"), elVazio = $("vazio"), elMsgVazio = $("msgVazio"), elCarga = $("carga");
