@@ -3,9 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Post-Icsa: suba as fotos, diga o que quer contar e veja o post sair na identidade da AHOBERO.">
+<meta name="description" content="Post-Icsa: banco de insights e gerador de post da AHOBERO.">
 <meta property="og:title" content="Post-Icsa">
-<meta property="og:description" content="O post pronto da AHOBERO a partir da foto como ela saiu do celular.">
 <title>Post-Icsa ao vivo</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap">
@@ -59,6 +58,12 @@
   .mini { position: relative; }
   .mini img { width: 54px; height: 54px; object-fit: cover; border: 2px solid var(--ink); display: block; cursor: pointer; }
   .mini[data-sel="1"] img { outline: 3px solid var(--red); outline-offset: 2px; }
+  .chip-nota {
+    border: 2px solid var(--ink); background: var(--campo); padding: 6px 9px; font-size: 11.5px;
+    font-weight: 600; max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    height: 54px; display: block; text-align: left; font-family: var(--font);
+  }
+  .chip-nota:hover { background: var(--yellow); }
   .mini b {
     position: absolute; top: -7px; left: -7px; width: 20px; height: 20px; background: var(--red); color: #fff;
     border: 2px solid var(--ink); font-size: 11px; display: grid; place-content: center; font-weight: 800;
@@ -214,6 +219,23 @@
 
           <button class="forte" id="criar" type="button">criar post</button>
           <p class="aviso" id="estado">A legenda usa só os fatos reais da associação e nunca afirma que a Indicação Geográfica foi concedida.</p>
+        </div>
+      </section>
+
+      <section class="painel">
+        <div class="cab"><span class="quad q-vm"></span><h2>Banco de insights</h2><span class="dir" id="contaBanco">vazio</span></div>
+        <div class="corpo">
+          <p class="aviso">Guarde aqui o que for aparecendo: uma ideia solta, um trecho de notícia, uma foto boa. O botão abaixo monta o post a partir desse material, sem você precisar escrever nada na hora.</p>
+          <label class="campo" for="ideia">Ideia, trecho ou anotação
+            <textarea id="ideia" placeholder="Ex.: a Dona Neuza contou que a receita da geleia veio da mãe dela. Ou: matéria do jornal sobre produtos com indicação de origem."></textarea>
+          </label>
+          <div class="linha">
+            <button id="salvarIdeia" type="button">salvar ideia</button>
+            <button id="salvarFotos" type="button">salvar fotos selecionadas</button>
+          </div>
+          <div class="minis" id="banco"></div>
+          <button class="forte" id="gerarAgora" type="button">gerar post agora</button>
+          <p class="aviso" id="estadoBanco">O banco fica guardado neste navegador. Em outro computador ele começa vazio.</p>
         </div>
       </section>
 
@@ -467,7 +489,11 @@
       abre = "A nossa geleia de pimenta biquinho nasce em Bento Rodrigues, feita à mão.";
 
     var meio = assunto && assunto.trim()
-      ? assunto.trim().replace(/\s+/g, " ")
+      ? assunto.trim().split(/\n+/).map(function (l) {
+          l = l.replace(/^[-•*\s]+/, "").trim();
+          if (l && !/[.!?]$/.test(l)) l += ".";
+          return l;
+        }).filter(Boolean).join(" ")
       : "Desde o plantio até a etiqueta colada à mão, tudo passa pelo trabalho das sete mulheres da associação.";
     if (!/[.!?]$/.test(meio)) meio += ".";
 
@@ -586,6 +612,194 @@
       elEstado.textContent = "Legenda copiada. Escolha a imagem pelo aparelho ao chegar na rede.";
     });
   });
+
+  /* ---------- banco de insights (IndexedDB, só neste navegador) ---------- */
+  var elIdeia = $("ideia"), elBanco = $("banco"), elContaBanco = $("contaBanco"), elEstadoBanco = $("estadoBanco");
+  var bd = null, insights = [];
+
+  function abreBanco() {
+    return new Promise(function (res) {
+      if (!window.indexedDB) return res(null);
+      var r = indexedDB.open("posticsa", 1);
+      r.onupgradeneeded = function () {
+        r.result.createObjectStore("insights", { keyPath: "id", autoIncrement: true });
+      };
+      r.onsuccess = function () { res(r.result); };
+      r.onerror = function () { res(null); };
+    });
+  }
+
+  function lista() {
+    return new Promise(function (res) {
+      if (!bd) return res([]);
+      try {
+        var t = bd.transaction("insights", "readonly").objectStore("insights").getAll();
+        t.onsuccess = function () { res(t.result || []); };
+        t.onerror = function () { res([]); };
+      } catch (e) { res([]); }
+    });
+  }
+
+  function guarda(reg) {
+    return new Promise(function (res) {
+      if (!bd) return res(false);
+      try {
+        var t = bd.transaction("insights", "readwrite").objectStore("insights").add(reg);
+        t.onsuccess = function () { res(true); };
+        t.onerror = function () { res(false); };
+      } catch (e) { res(false); }
+    });
+  }
+
+  function remove(id) {
+    return new Promise(function (res) {
+      if (!bd) return res();
+      try {
+        var t = bd.transaction("insights", "readwrite").objectStore("insights").delete(id);
+        t.onsuccess = function () { res(); };
+        t.onerror = function () { res(); };
+      } catch (e) { res(); }
+    });
+  }
+
+  async function pintaBanco() {
+    insights = await lista();
+    insights.sort(function (a, b) { return (b.criadoEm || 0) - (a.criadoEm || 0); });
+    var imgs = insights.filter(function (i) { return i.tipo === "imagem"; });
+    var txts = insights.filter(function (i) { return i.tipo === "texto"; });
+    elContaBanco.textContent = insights.length
+      ? imgs.length + " foto" + (imgs.length === 1 ? "" : "s") + " · " + txts.length + " nota" + (txts.length === 1 ? "" : "s")
+      : "vazio";
+    elBanco.textContent = "";
+    insights.slice(0, 18).forEach(function (i) {
+      var cap = document.createElement("span");
+      cap.className = "mini";
+      if (i.tipo === "imagem" && i.blob) {
+        var t = new Image();
+        t.src = URL.createObjectURL(i.blob);
+        t.alt = "foto guardada";
+        t.title = "clique para tirar do banco";
+        t.addEventListener("click", async function () { await remove(i.id); pintaBanco(); });
+        cap.appendChild(t);
+      } else {
+        var c = document.createElement("button");
+        c.type = "button";
+        c.className = "chip-nota";
+        c.textContent = (i.texto || "").slice(0, 60);
+        c.title = "clique para tirar do banco";
+        c.addEventListener("click", async function () { await remove(i.id); pintaBanco(); });
+        cap.appendChild(c);
+      }
+      elBanco.appendChild(cap);
+    });
+  }
+
+  $("salvarIdeia").addEventListener("click", async function () {
+    var t = elIdeia.value.trim();
+    if (!t) { elIdeia.focus(); return; }
+    var ok = await guarda({ tipo: "texto", texto: t, criadoEm: Date.now() });
+    elEstadoBanco.textContent = ok ? "Ideia guardada." : "Este navegador não deixou guardar (janela anônima?).";
+    if (ok) elIdeia.value = "";
+    pintaBanco();
+  });
+
+  $("salvarFotos").addEventListener("click", async function () {
+    if (!selecao.length) { elEstadoBanco.textContent = "Escolha fotos acima antes de guardar."; return; }
+    var n = 0;
+    for (var i = 0; i < selecao.length; i++) {
+      if (await guarda({ tipo: "imagem", blob: fotos[selecao[i]].blob, criadoEm: Date.now() + i })) n++;
+    }
+    elEstadoBanco.textContent = n ? n + (n > 1 ? " fotos guardadas." : " foto guardada.") : "Não consegui guardar as fotos neste navegador.";
+    pintaBanco();
+  });
+
+  function carregaBlob(blob) {
+    return new Promise(function (res) {
+      var u = URL.createObjectURL(blob), i = new Image();
+      i.onload = function () { res(i); };
+      i.onerror = function () { res(null); };
+      i.src = u;
+    });
+  }
+
+  $("gerarAgora").addEventListener("click", async function () {
+    if (!insights.length) { elEstadoBanco.textContent = "O banco está vazio. Guarde uma ideia ou uma foto primeiro."; return; }
+    var imgs = insights.filter(function (i) { return i.tipo === "imagem" && i.blob; });
+    var txts = insights.filter(function (i) { return i.tipo === "texto"; });
+
+    var b = $("gerarAgora");
+    b.disabled = true; b.textContent = "gerando...";
+    elCarga.classList.add("pulsa");
+    elMsgVazio.textContent = "Montando...";
+
+    var material = txts.slice(0, 6).map(function (t) { return "- " + t.texto; }).join("\n");
+    var assunto = material || "Apresentar a geleia e a associacao.";
+    var titulo = "";
+
+    var chave = elChave.value.trim();
+    if (chave) {
+      try {
+        var r = await tituloELegendaGroq(chave, assunto);
+        titulo = r.titulo; legendaAtual = r.legenda;
+        elEstadoBanco.textContent = "Post gerado a partir do banco, com a Groq.";
+      } catch (e) {
+        titulo = (txts[0] && txts[0].texto.split(/[.!?]/)[0].slice(0, 70)) || "Geleia de pimenta biquinho";
+        legendaAtual = legendaLocal(assunto, titulo);
+        elEstadoBanco.textContent = "A Groq não respondeu (" + e.message + "). Gerei com o material do banco.";
+      }
+    } else {
+      titulo = (txts[0] && txts[0].texto.split(/[.!?]/)[0].slice(0, 70)) || "Geleia de pimenta biquinho";
+      legendaAtual = legendaLocal(assunto, titulo);
+      elEstadoBanco.textContent = "Post gerado com o material do banco.";
+    }
+
+    var usadas = elCarrossel.checked ? imgs.slice(0, 10) : imgs.slice(0, 1);
+    quadros.forEach(function (q) { URL.revokeObjectURL(q.url); });
+    quadros = [];
+    if (!usadas.length) usadas = [null];
+    for (var n = 0; n < usadas.length; n++) {
+      var img = usadas[n] ? await carregaBlob(usadas[n].blob) : null;
+      var cv = desenha(img, n === 0 ? titulo : "", n + 1, usadas.length);
+      quadros.push({ canvas: cv, url: cv.toDataURL("image/jpeg", 0.9) });
+    }
+    mostra(0);
+
+    elTitulo.value = titulo;
+    elAssunto.value = material;
+    elLegenda.removeAttribute("data-vazia");
+    elLegenda.textContent = legendaAtual;
+    elCopiar.disabled = false;
+    elCarga.classList.remove("pulsa");
+    b.disabled = false; b.textContent = "gerar post agora";
+  });
+
+  async function tituloELegendaGroq(chave, assunto) {
+    var r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + chave },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.7, max_tokens: 600,
+        messages: [
+          { role: "system", content: REGRAS + "\n\nFATOS:\n" + FATOS +
+            "\n\nResponda SOMENTE com um objeto JSON {\"titulo\": string de ate 70 caracteres, \"legenda\": string}." },
+          { role: "user", content: "Material guardado pela associacao:\n" + assunto +
+            "\n\nEscolha o angulo mais forte e escreva o post." }
+        ]
+      })
+    });
+    if (!r.ok) throw new Error(r.status === 401 ? "chave recusada" : "erro " + r.status);
+    var j = await r.json();
+    var txt = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content || "").trim();
+    var m = txt.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error("resposta fora do formato");
+    var o = JSON.parse(m[0]);
+    if (/indica[cç][aã]o geogr[aá]fica (concedid|aprovad|obtid)/i.test(o.legenda || ""))
+      throw new Error("a legenda afirmava que a IG foi concedida");
+    return { titulo: String(o.titulo || "").slice(0, 80), legenda: String(o.legenda || "") };
+  }
+
+  abreBanco().then(function (b) { bd = b; pintaBanco(); });
 
   /* ---------- calendário ---------- */
   var SAZONAL = {
