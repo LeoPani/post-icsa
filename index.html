@@ -391,6 +391,7 @@
     "no maximo tres hashtags especificas no fim. Responda apenas com a legenda.";
 
   var fotos = [], selecao = [], logo = null, quadros = [], indice = 0, legendaAtual = "";
+  var fotoDaPauta = false;  // true quando a foto veio do calendário, não de upload
 
   var im = new Image();
   im.onload = function () { logo = im; };
@@ -455,6 +456,7 @@
     var arr = Array.prototype.slice.call(lista).filter(function (f) { return /^image\//.test(f.type); });
     if (!arr.length) return;
     fotos.forEach(function (f) { URL.revokeObjectURL(f.url); });
+    fotoDaPauta = false;
     fotos = arr.slice(0, 12).map(function (b) { return { blob: b, url: URL.createObjectURL(b), img: null }; });
     selecao = fotos.map(function (_, i) { return i; }).slice(0, 10);
     fotos.forEach(function (f) {
@@ -949,7 +951,7 @@
   /* ---------- calendário ---------- */
   var SAZONAL = {
     7:  { tema: "Plantio da pimenta biquinho", nota: "O primeiro plantio próprio foi em julho de 2025",
-          foto: "fotos/potes.jpg", titulo: "O plantio que nos devolveu a terra",
+          foto: "fotos/pimentas.jpg", titulo: "O plantio que nos devolveu a terra",
           assunto: "O plantio da pimenta biquinho na área que recebemos, contando que até 2025 a matéria-prima vinha de fornecedor e hoje vem do nosso próprio chão. Falar do significado de plantar de novo em Bento Rodrigues." },
     11: { tema: "Colheita da pimenta biquinho", nota: "Quase duas toneladas colhidas em 2025",
           foto: "fotos/potes.jpg", titulo: "A primeira colheita que é nossa",
@@ -958,12 +960,12 @@
           foto: "fotos/potes.jpg", titulo: "Geleia de presente, história junto",
           assunto: "A geleia como presente de fim de ano, falando do pote de 150 g, do preço e de como encomendar com antecedência. Lembrar que cada pote é feito à mão por nós." },
     5:  { tema: "Feiras e visitas técnicas", nota: "O Connection Terroirs foi em maio",
-          foto: "fotos/sede.jpg", titulo: "Levar a geleia e a história juntas",
+          foto: "fotos/feira.jpg", titulo: "Levar a geleia e a história juntas",
           assunto: "A participação em feiras e eventos de produtos de origem, contando o que aprendemos conversando com outros produtores e convidando quem quiser receber a gente." }
   };
   var GIRO = [
     { tema: "Bastidor da produção da geleia", nota: "O tacho, o ponto certo, as etiquetas à mão",
-      foto: "fotos/potes.jpg", titulo: "O ponto certo a gente conhece no olho",
+      foto: "fotos/tacho.jpg", titulo: "O ponto certo a gente conhece no olho",
       assunto: "O bastidor da produção: lavar os potes, espremer a laranja, mexer o tacho, acertar o ponto e colar as etiquetas à mão. Mostrar que cada etapa passa pela mão de alguém." },
     { tema: "Quem faz: uma das sete mulheres", nota: "A história de quem está por trás do pote",
       foto: "fotos/sede.jpg", titulo: "Somos sete, e cada pote passa por todas",
@@ -972,10 +974,10 @@
       foto: "fotos/sede.jpg", titulo: "A sede é nossa, e a porta está aberta",
       assunto: "A sede definitiva no Novo Bento Rodrigues, recebida em novembro de 2025, com espaço de produção, recebimento e eventos. Convidar para visita técnica agendada." },
     { tema: "Como usar a geleia à mesa", nota: "Receita curta com queijo, carne ou pão",
-      foto: "fotos/potes.jpg", titulo: "Com queijo, com carne, com pão quente",
+      foto: "fotos/mesa.jpg", titulo: "Com queijo, com carne, com pão quente",
       assunto: "Maneiras simples de usar a geleia de pimenta biquinho à mesa, sem receita complicada. Terminar convidando a encomendar." },
     { tema: "De onde vem a pimenta biquinho", nota: "Do plantio próprio até o pote",
-      foto: "fotos/potes.jpg", titulo: "Do nosso plantio até o seu pote",
+      foto: "fotos/pimentas.jpg", titulo: "Do nosso plantio até o seu pote",
       assunto: "O caminho da pimenta: plantio próprio, colheita, lavagem, salmoura, tacho e pote. Mostrar que dá para saber exatamente de onde vem o que você come." }
   ];
   (function pintaCal() {
@@ -1002,11 +1004,13 @@
       item.addEventListener("click", async function () {
         elTitulo.value = base.titulo || base.tema;
         elAssunto.value = base.assunto || base.nota;
-        if (!selecao.length && base.foto) {
+        if ((!selecao.length || fotoDaPauta) && base.foto) {
           var pronta = await carregaImagemURL(base.foto);
           if (pronta) {
+            if (fotoDaPauta) { fotos = []; selecao = []; }
             fotos.push({ blob: null, url: base.foto, img: pronta });
             selecao = [fotos.length - 1];
+            fotoDaPauta = true;
             pintaMinis();
           }
         }
