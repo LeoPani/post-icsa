@@ -115,6 +115,27 @@
   .aviso { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 0; }
   .aviso b { color: var(--red); font-weight: 800; }
 
+  /* ---------- simulação do envio ---------- */
+  .palco-sim { position: relative; border: 2px solid var(--ink); background: var(--suave); padding: 16px; overflow: hidden; }
+  .trilho { display: grid; gap: 8px; }
+  .passo {
+    display: grid; grid-template-columns: 26px minmax(0,1fr); gap: 10px; align-items: center;
+    border: 2px solid var(--ink); background: var(--campo); padding: 8px 10px; transition: background 180ms linear;
+  }
+  .passo b { width: 22px; height: 22px; border: 2px solid var(--ink); display: grid; place-content: center; font-size: 11px; background: var(--paper); }
+  .passo span { font-size: 13px; font-weight: 700; }
+  .passo[data-ativo="1"] { background: var(--yellow); }
+  .passo[data-feito="1"] b { background: var(--ah-verde, #1B6957); color: #fff; }
+  .cursor { position: absolute; left: 24px; top: 24px; transition: transform 620ms cubic-bezier(.3,.8,.3,1); pointer-events: none; }
+  .cursor[data-clique="1"] svg { transform: scale(0.8); }
+  .cursor svg { transition: transform 120ms linear; display: block; }
+  .selo {
+    position: absolute; right: -34px; top: 12px; transform: rotate(32deg); background: var(--red); color: #fff;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; padding: 4px 42px;
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  }
+  @media (prefers-reduced-motion: reduce) { .cursor { transition: none; } }
+
   .cal { padding: 15px; display: grid; gap: 9px; }
   .cal-item { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 11px; align-items: start; border-bottom: 1px solid var(--suave); padding-bottom: 9px; }
   .cal-item:last-child { border-bottom: 0; padding-bottom: 0; }
@@ -271,6 +292,28 @@
             <a class="botao" id="irTiktok" href="https://www.tiktok.com/upload" target="_blank" rel="noopener">postar no TikTok</a>
           </div>
           <p class="aviso">Os dois botões copiam a legenda e abrem o site. O login e o envio da imagem são seus: <b>nada é publicado automaticamente</b>.</p>
+
+          <details id="caixaSim">
+            <summary>Ver como seria o envio automático</summary>
+            <div class="dentro">
+              <div class="palco-sim" id="palcoSim">
+                <div class="trilho">
+                  <div class="passo" data-p="0"><b>1</b><span>Abrir a conta</span></div>
+                  <div class="passo" data-p="1"><b>2</b><span>Escolher a imagem</span></div>
+                  <div class="passo" data-p="2"><b>3</b><span>Colar a legenda</span></div>
+                  <div class="passo" data-p="3"><b>4</b><span>Publicar</span></div>
+                </div>
+                <div class="cursor" id="cursorSim" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="26" height="26"><polygon points="3,2 3,20 8,15 11,22 14,21 11,14 18,14" fill="#141414" stroke="#F6F4EE" stroke-width="1.5"></polygon></svg>
+                </div>
+                <div class="selo" id="seloSim">simulação</div>
+              </div>
+              <div class="linha">
+                <button id="simular" type="button">rodar simulação</button>
+                <span class="aviso" id="estadoSim">Mostra o que a versão completa faria, com aprovação de uma pessoa antes do último passo.</span>
+              </div>
+            </div>
+          </details>
         </div>
       </section>
     </div>
@@ -612,6 +655,59 @@
       elEstado.textContent = "Legenda copiada. Escolha a imagem pelo aparelho ao chegar na rede.";
     });
   });
+
+  /* ---------- simulação do envio (só dentro desta página) ---------- */
+  (function () {
+    var palco = $("palcoSim"), cursor = $("cursorSim"), btn = $("simular"), est = $("estadoSim");
+    if (!palco) return;
+    var passos = palco.querySelectorAll(".passo");
+    var rodando = false, timers = [];
+
+    function limpa() {
+      timers.forEach(clearTimeout); timers = [];
+      Array.prototype.forEach.call(passos, function (p) {
+        p.removeAttribute("data-ativo"); p.removeAttribute("data-feito");
+      });
+      cursor.removeAttribute("data-clique");
+      cursor.style.transform = "translate(0,0)";
+    }
+
+    function vaiPara(alvo) {
+      var a = alvo.getBoundingClientRect(), b = palco.getBoundingClientRect();
+      var x = a.left - b.left + a.width - 54;
+      var y = a.top - b.top + a.height / 2 - 34;
+      cursor.style.transform = "translate(" + x + "px," + y + "px)";
+    }
+
+    function agenda(fn, ms) { timers.push(setTimeout(fn, ms)); }
+
+    btn.addEventListener("click", function () {
+      if (rodando) { limpa(); rodando = false; btn.textContent = "rodar simulação"; est.textContent = "Simulação interrompida."; return; }
+      limpa();
+      rodando = true;
+      btn.textContent = "parar";
+      est.textContent = "Rodando. Nada é publicado: isto acontece só nesta página.";
+      var t = 260;
+      Array.prototype.forEach.call(passos, function (p, i) {
+        agenda(function () { vaiPara(p); }, t);
+        agenda(function () {
+          p.setAttribute("data-ativo", "1");
+          cursor.setAttribute("data-clique", "1");
+        }, t + 660);
+        agenda(function () {
+          cursor.removeAttribute("data-clique");
+          p.removeAttribute("data-ativo");
+          p.setAttribute("data-feito", "1");
+        }, t + 980);
+        t += 1180;
+      });
+      agenda(function () {
+        rodando = false;
+        btn.textContent = "rodar simulação";
+        est.textContent = "Fim. Na versão completa, o passo 4 só roda depois de alguém da associação aprovar.";
+      }, t + 200);
+    });
+  })();
 
   /* ---------- banco de insights (IndexedDB, só neste navegador) ---------- */
   var elIdeia = $("ideia"), elBanco = $("banco"), elContaBanco = $("contaBanco"), elEstadoBanco = $("estadoBanco");
