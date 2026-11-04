@@ -3,19 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Post-Icsa: suba a foto, escreva o que quer contar e veja o post sair na identidade da AHOBERO.">
+<meta name="description" content="Post-Icsa: suba as fotos, diga o que quer contar e veja o post sair na identidade da AHOBERO.">
 <meta property="og:title" content="Post-Icsa">
 <meta property="og:description" content="O post pronto da AHOBERO a partir da foto como ela saiu do celular.">
 <title>Post-Icsa ao vivo</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap">
 <style>
-  /* Demonstração sem login: tudo roda no navegador de quem abre.
-     Entrada à esquerda, post à direita; empilha no telefone. */
+  /* Neoplasticismo do post-icsa na ferramenta; a identidade da AHOBERO vive no post.
+     Entrada à esquerda, pré-visualização à direita; empilha no telefone. */
   :root {
     --paper: #F6F4EE; --ink: #141414; --red: #DF3117; --blue: #1E4DA0;
     --yellow: #F5BE00; --muted: #8A877F; --campo: #FFFFFF; --suave: #EDEAE1;
-    --ah-verde: #1B6957; --ah-creme: #DCC8AF; --ah-geleia: #8C2F26;
     --line: 3px solid var(--ink);
     --font: "Archivo", "Segoe UI", Helvetica, Arial, sans-serif;
     color-scheme: light;
@@ -43,13 +42,13 @@
   .quad { width: 13px; height: 13px; flex: none; border: 2px solid var(--ink); }
   .q-am { background: var(--yellow); } .q-az { background: var(--blue); } .q-vm { background: var(--red); }
   .cab h2 { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; margin: 0; }
-  .cab .dir { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 600; }
+  .cab .dir { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
   .corpo { padding: 15px; display: grid; gap: 14px; }
 
   label.campo { display: grid; gap: 7px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
   .solta {
     border: var(--line); border-style: dashed; background: transparent; color: var(--ink);
-    padding: 20px 14px; text-align: center; cursor: pointer; font-family: var(--font);
+    padding: 18px 14px; text-align: center; cursor: pointer; font-family: var(--font);
     font-size: 14px; font-weight: 700; width: 100%; display: grid; gap: 5px; justify-items: center;
   }
   .solta:hover { background: var(--suave); }
@@ -57,30 +56,54 @@
   .solta.sobre { background: var(--yellow); }
   .solta small { font-weight: 400; color: var(--muted); font-size: 12px; }
   .minis { display: flex; gap: 7px; flex-wrap: wrap; }
-  .minis img { width: 50px; height: 50px; object-fit: cover; border: 2px solid var(--ink); display: block; cursor: pointer; }
-  .minis img[data-sel="1"] { outline: 3px solid var(--red); outline-offset: 2px; }
+  .mini { position: relative; }
+  .mini img { width: 54px; height: 54px; object-fit: cover; border: 2px solid var(--ink); display: block; cursor: pointer; }
+  .mini[data-sel="1"] img { outline: 3px solid var(--red); outline-offset: 2px; }
+  .mini b {
+    position: absolute; top: -7px; left: -7px; width: 20px; height: 20px; background: var(--red); color: #fff;
+    border: 2px solid var(--ink); font-size: 11px; display: grid; place-content: center; font-weight: 800;
+  }
 
-  input[type="text"], textarea {
+  .formatos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 2px solid var(--ink); }
+  .formatos button { border: 0; border-left: 2px solid var(--ink); background: transparent; padding: 9px 6px; display: grid; gap: 2px; }
+  .formatos button:first-child { border-left: 0; }
+  .formatos button[aria-pressed="true"] { background: var(--yellow); }
+  .formatos strong { font-size: 12.5px; font-weight: 800; }
+  .formatos span { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .caixa-opcao { border: 2px solid var(--ink); padding: 11px 12px; display: flex; gap: 10px; align-items: flex-start; }
+  .caixa-opcao input { margin: 2px 0 0; width: 17px; height: 17px; accent-color: var(--red); flex: none; }
+  .caixa-opcao label { font-size: 13.5px; font-weight: 700; line-height: 1.4; cursor: pointer; }
+  .caixa-opcao em { font-style: normal; display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  input[type="text"], input[type="password"], textarea {
     font-family: var(--font); font-size: 15px; line-height: 1.5; color: var(--ink);
     background: var(--campo); border: 2px solid var(--ink); padding: 11px; width: 100%;
   }
-  textarea { min-height: 96px; resize: vertical; }
+  textarea { min-height: 84px; resize: vertical; }
   button, a.botao {
     font-family: var(--font); cursor: pointer; border: 2px solid var(--ink); background: transparent;
     color: var(--ink); font-size: 13px; font-weight: 700; padding: 9px 13px; text-decoration: none;
     display: inline-block; text-align: center;
   }
   button:hover, a.botao:hover { background: var(--yellow); }
-  button[disabled] { color: var(--muted); border-color: var(--muted); cursor: default; background: transparent; }
+  button[disabled], a.botao[aria-disabled="true"] { color: var(--muted); border-color: var(--muted); cursor: default; background: transparent; }
   button.forte { background: var(--red); color: #fff; border: var(--line); font-size: 16px; font-weight: 800; padding: 13px 18px; width: 100%; }
   button.forte:hover { background: #B82812; }
+  button.forte[disabled] { background: var(--muted); border-color: var(--muted); color: #fff; }
   button:focus-visible, a.botao:focus-visible, textarea:focus-visible, input:focus-visible, .solta:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  details { border: 2px solid var(--ink); }
+  details summary { padding: 9px 12px; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
+  details[open] summary { border-bottom: 2px solid var(--ink); }
+  details .dentro { padding: 12px; display: grid; gap: 10px; }
 
   .palco { padding: 15px; display: grid; gap: 12px; }
-  .quadro { position: relative; border: var(--line); aspect-ratio: 1 / 1; background: var(--suave); overflow: hidden; }
-  .quadro canvas { width: 100%; height: 100%; display: block; }
-  .vazio { position: absolute; inset: 0; display: grid; place-content: center; gap: 12px; justify-items: center; text-align: center; padding: 22px; color: var(--muted); font-size: 13px; line-height: 1.5; }
-  .legenda { border: 2px solid var(--ink); padding: 11px; font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; min-height: 72px; background: var(--campo); }
+  .quadro { position: relative; border: var(--line); background: var(--suave); overflow: hidden; display: grid; place-items: center; }
+  .quadro canvas { max-width: 100%; max-height: 62vh; display: block; }
+  .vazio { display: grid; place-content: center; gap: 12px; justify-items: center; text-align: center; padding: 48px 22px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .nav { display: flex; gap: 8px; align-items: center; justify-content: center; }
+  .nav .conta { font-size: 12px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 72px; text-align: center; }
+  .legenda { border: 2px solid var(--ink); padding: 11px; font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; min-height: 76px; background: var(--campo); }
   .legenda[data-vazia="1"] { color: var(--muted); }
   .linha { display: flex; gap: 8px; flex-wrap: wrap; }
   .dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -90,7 +113,7 @@
   .cal { padding: 15px; display: grid; gap: 9px; }
   .cal-item { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 11px; align-items: start; border-bottom: 1px solid var(--suave); padding-bottom: 9px; }
   .cal-item:last-child { border-bottom: 0; padding-bottom: 0; }
-  .cal-data { font-size: 11.5px; font-weight: 800; letter-spacing: 0.04em; color: var(--ink); padding-top: 2px; font-variant-numeric: tabular-nums; }
+  .cal-data { font-size: 11.5px; font-weight: 800; color: var(--ink); padding-top: 2px; font-variant-numeric: tabular-nums; }
   .cal-tema { font-size: 13px; line-height: 1.45; }
   .cal-tema em { font-style: normal; color: var(--muted); display: block; font-size: 11.5px; margin-top: 2px; }
 
@@ -138,7 +161,7 @@
     </svg>
     <div>
       <h1>post-icsa</h1>
-      <p class="tag">Suba a foto como ela saiu do celular, escreva o que quer contar e veja o post sair na identidade da AHOBERO. Tudo acontece no seu navegador: sem conta, sem instalar nada.</p>
+      <p class="tag">Suba as fotos como elas saíram do celular, diga o que quer contar e veja o post sair na identidade da AHOBERO. Tudo acontece no seu navegador.</p>
     </div>
   </header>
 
@@ -147,25 +170,50 @@
       <section class="painel">
         <div class="cab"><span class="quad q-am"></span><h2>O material</h2></div>
         <div class="corpo">
-          <label class="campo" for="arq">Foto
+          <label class="campo" for="arq">Fotos
             <button type="button" class="solta" id="solta">
-              <span id="rotulo">Escolher ou arrastar foto</span>
-              <small>JPEG ou PNG, direto do aparelho. Clique numa miniatura para escolher a que vai no post.</small>
+              <span id="rotulo">Escolher ou arrastar fotos</span>
+              <small>JPEG ou PNG, direto do aparelho. Clique nas miniaturas para escolher e ordenar.</small>
             </button>
           </label>
           <input type="file" id="arq" accept="image/*" multiple hidden>
           <div class="minis" id="minis"></div>
 
-          <label class="campo" for="titulo">Título que vai impresso na arte
+          <label class="campo">Formato
+            <div class="formatos" id="formatos">
+              <button type="button" data-f="quadrado" aria-pressed="true"><strong>Quadrado</strong><span>1080 × 1080</span></button>
+              <button type="button" data-f="retrato" aria-pressed="false"><strong>Retrato</strong><span>1080 × 1350</span></button>
+              <button type="button" data-f="story" aria-pressed="false"><strong>Story</strong><span>1080 × 1920</span></button>
+            </div>
+          </label>
+
+          <div class="caixa-opcao">
+            <input type="checkbox" id="carrossel">
+            <label for="carrossel">Post com mais de uma imagem
+              <em>Gera um quadro por foto selecionada, todos no mesmo formato. Até 10.</em>
+            </label>
+          </div>
+
+          <label class="campo" for="titulo">Título impresso no primeiro quadro
             <input type="text" id="titulo" maxlength="80" placeholder="A primeira colheita que é nossa">
           </label>
 
-          <label class="campo" for="legenda-in">Legenda da publicação
-            <textarea id="legenda-in" placeholder="Colhemos quase duas toneladas de pimenta biquinho na nossa própria área de plantio, a primeira desde que recebemos a sede no Novo Bento Rodrigues. Venha nos visitar."></textarea>
+          <label class="campo" for="assunto">O que este post deve contar
+            <textarea id="assunto" placeholder="A colheita de pimenta biquinho da nossa área de plantio, o trabalho das sete mulheres e o convite para visitar a sede."></textarea>
           </label>
 
+          <details id="caixaIA">
+            <summary>Legenda automática (opcional)</summary>
+            <div class="dentro">
+              <label class="campo" for="chave">Sua chave da Groq
+                <input type="password" id="chave" placeholder="gsk_..." autocomplete="off" spellcheck="false">
+              </label>
+              <p class="aviso">A chave fica só no seu navegador e vai direto para a Groq. <b>Nunca digite isso numa tela projetada.</b> Sem chave, a legenda é montada aqui mesmo, a partir dos dados reais da associação.</p>
+            </div>
+          </details>
+
           <button class="forte" id="criar" type="button">criar post</button>
-          <p class="aviso" id="estado">Nesta demonstração os textos são seus. Na versão completa, um serviço escreve título e legenda a partir dos dados reais da associação e recusa número inventado.</p>
+          <p class="aviso" id="estado">A legenda usa só os fatos reais da associação e nunca afirma que a Indicação Geográfica foi concedida.</p>
         </div>
       </section>
 
@@ -177,32 +225,30 @@
 
     <div>
       <section class="painel">
-        <div class="cab"><span class="quad q-az"></span><h2>O post</h2><span class="dir">1080 × 1080</span></div>
+        <div class="cab"><span class="quad q-az"></span><h2>O post</h2><span class="dir" id="dim">1080 × 1080</span></div>
         <div class="palco">
-          <div class="quadro">
-            <canvas id="tela" width="1080" height="1080" hidden></canvas>
+          <div class="quadro" id="quadro">
             <div class="vazio" id="vazio">
               <div class="nota-carga" id="carga" aria-hidden="true"><i class="nc1"></i><i class="nc2"></i><i class="nc3"></i></div>
               <span id="msgVazio">O post aparece aqui, na identidade da AHOBERO.</span>
             </div>
           </div>
+          <div class="nav" id="nav" hidden>
+            <button id="ant" type="button">‹</button>
+            <span class="conta" id="conta">1 de 1</span>
+            <button id="prox" type="button">›</button>
+          </div>
           <div class="legenda" id="legenda" data-vazia="1">A legenda aparece aqui, pronta para copiar.</div>
           <div class="linha">
             <button id="copiar" type="button" disabled>copiar legenda</button>
-            <button id="salvar" type="button" disabled>salvar no histórico</button>
+            <a class="botao" id="baixar" aria-disabled="true" download="post-ahobero.jpg">baixar imagem</a>
+            <button id="baixarTodas" type="button" hidden>baixar todas</button>
           </div>
           <div class="dupla">
             <a class="botao" id="irInsta" href="https://www.instagram.com/" target="_blank" rel="noopener">postar no Instagram</a>
             <a class="botao" id="irTiktok" href="https://www.tiktok.com/upload" target="_blank" rel="noopener">postar no TikTok</a>
           </div>
           <p class="aviso">Os dois botões copiam a legenda e abrem o site. O login e o envio da imagem são seus: <b>nada é publicado automaticamente</b>.</p>
-        </div>
-      </section>
-
-      <section class="painel">
-        <div class="cab"><span class="quad q-vm"></span><h2>Histórico desta sessão</h2><span class="dir" id="conta">vazio</span></div>
-        <div class="corpo" id="hist">
-          <p class="aviso">Os posts que você salvar ficam listados aqui enquanto a página estiver aberta.</p>
         </div>
       </section>
     </div>
@@ -214,31 +260,72 @@
   "use strict";
   var $ = function (i) { return document.getElementById(i); };
   var elArq = $("arq"), elSolta = $("solta"), elRotulo = $("rotulo"), elMinis = $("minis");
-  var elTitulo = $("titulo"), elLegIn = $("legenda-in"), elCriar = $("criar"), elEstado = $("estado");
-  var elTela = $("tela"), elVazio = $("vazio"), elMsgVazio = $("msgVazio"), elCarga = $("carga");
-  var elLegenda = $("legenda"), elCopiar = $("copiar"), elSalvar = $("salvar");
-  var elHist = $("hist"), elConta = $("conta"), elCal = $("cal");
+  var elTitulo = $("titulo"), elAssunto = $("assunto"), elCriar = $("criar"), elEstado = $("estado");
+  var elQuadro = $("quadro"), elVazio = $("vazio"), elMsgVazio = $("msgVazio"), elCarga = $("carga");
+  var elLegenda = $("legenda"), elCopiar = $("copiar"), elBaixar = $("baixar"), elBaixarTodas = $("baixarTodas");
+  var elNav = $("nav"), elConta = $("conta"), elDim = $("dim"), elCal = $("cal");
+  var elCarrossel = $("carrossel"), elChave = $("chave"), elCal2 = $("cal");
 
-  var fotos = [], escolhida = 0, logo = null, atual = null, historico = [];
+  var FORMATOS = {
+    quadrado: { w: 1080, h: 1080, nome: "1080 × 1080" },
+    retrato:  { w: 1080, h: 1350, nome: "1080 × 1350" },
+    story:    { w: 1080, h: 1920, nome: "1080 × 1920" }
+  };
+  var formato = "quadrado";
+
+  var FATOS =
+    "A AHOBERO e a Associacao dos Hortigranjeiros de Bento Rodrigues, em Mariana, Minas Gerais. " +
+    "Sete mulheres produzem geleia artesanal de pimenta biquinho. " +
+    "A comunidade foi deslocada pelo rompimento da barragem de Fundao, em 2015. " +
+    "A sede definitiva, no Novo Bento Rodrigues, foi recebida em novembro de 2025, junto com area de plantio. " +
+    "Primeiro plantio proprio em julho de 2025; primeira colheita de quase duas toneladas entre novembro e dezembro de 2025. " +
+    "Capacidade de 1.000 potes de 150 g por mes; produzem cerca de metade disso. " +
+    "O pote custa R$ 20 para cliente externo e R$ 15 para a comunidade local. " +
+    "A associacao participa do processo de reconhecimento de Indicacao Geografica e NAO tem o selo concedido. " +
+    "Participaram do Connection Terroirs do Brasil, em Gramado, de 28 a 31 de maio de 2025.";
+
+  var REGRAS =
+    "Escreva a legenda de uma publicacao da AHOBERO para redes sociais, na voz da associacao (primeira pessoa do plural). " +
+    "Use somente os fatos fornecidos; nunca invente numero, data ou premio. " +
+    "Nunca afirme que a Indicacao Geografica foi concedida; se mencionar, diga que esta em processo de reconhecimento. " +
+    "Tom caloroso e direto, sem jargao de marketing, sem emoji, entre 400 e 700 caracteres, " +
+    "no maximo tres hashtags especificas no fim. Responda apenas com a legenda.";
+
+  var fotos = [], selecao = [], logo = null, quadros = [], indice = 0, legendaAtual = "";
 
   var im = new Image();
   im.onload = function () { logo = im; };
   im.src = "ahobero-logo.png";
 
+  try { var g = localStorage.getItem("posticsa_groq"); if (g) { elChave.value = g; $("caixaIA").open = true; } } catch (e) {}
+  elChave.addEventListener("change", function () {
+    try { localStorage.setItem("posticsa_groq", elChave.value.trim()); } catch (e) {}
+  });
+
   /* ---------- fotos ---------- */
   function pintaMinis() {
     elMinis.textContent = "";
     fotos.forEach(function (f, i) {
+      var pos = selecao.indexOf(i);
+      var cap = document.createElement("span");
+      cap.className = "mini";
+      if (pos >= 0) cap.setAttribute("data-sel", "1");
       var t = new Image();
       t.src = f.url; t.alt = "foto " + (i + 1);
-      t.title = "usar esta foto no post";
-      if (i === escolhida) t.setAttribute("data-sel", "1");
-      t.addEventListener("click", function () { escolhida = i; pintaMinis(); });
-      elMinis.appendChild(t);
+      t.title = pos >= 0 ? "clique para tirar do post" : "clique para incluir no post";
+      t.addEventListener("click", function () {
+        var p = selecao.indexOf(i);
+        if (p >= 0) selecao.splice(p, 1);
+        else if (selecao.length < 10) selecao.push(i);
+        pintaMinis();
+      });
+      cap.appendChild(t);
+      if (pos >= 0) { var b = document.createElement("b"); b.textContent = pos + 1; cap.appendChild(b); }
+      elMinis.appendChild(cap);
     });
     var n = fotos.length;
-    elRotulo.textContent = n === 0 ? "Escolher ou arrastar foto"
-      : n === 1 ? "1 foto — trocar" : n + " fotos — trocar";
+    elRotulo.textContent = n === 0 ? "Escolher ou arrastar fotos"
+      : n + (n > 1 ? " fotos" : " foto") + " — trocar";
     elSolta.setAttribute("data-cheia", n ? "1" : "0");
   }
 
@@ -246,8 +333,8 @@
     var arr = Array.prototype.slice.call(lista).filter(function (f) { return /^image\//.test(f.type); });
     if (!arr.length) return;
     fotos.forEach(function (f) { URL.revokeObjectURL(f.url); });
-    fotos = arr.slice(0, 6).map(function (b) { return { blob: b, url: URL.createObjectURL(b), img: null }; });
-    escolhida = 0;
+    fotos = arr.slice(0, 12).map(function (b) { return { blob: b, url: URL.createObjectURL(b), img: null }; });
+    selecao = fotos.map(function (_, i) { return i; }).slice(0, 10);
     fotos.forEach(function (f) {
       var i2 = new Image();
       i2.onload = function () { f.img = i2; };
@@ -268,7 +355,18 @@
     if (ev.dataTransfer && ev.dataTransfer.files) aceita(ev.dataTransfer.files);
   });
 
-  /* ---------- arte ---------- */
+  /* ---------- formato ---------- */
+  Array.prototype.forEach.call($("formatos").children, function (b) {
+    b.addEventListener("click", function () {
+      formato = b.getAttribute("data-f");
+      Array.prototype.forEach.call($("formatos").children, function (o) {
+        o.setAttribute("aria-pressed", o === b ? "true" : "false");
+      });
+      elDim.textContent = FORMATOS[formato].nome;
+    });
+  });
+
+  /* ---------- composição ---------- */
   function quebra(ctx, txt, larg) {
     var p = txt.split(/\s+/), l = [], a = "";
     for (var i = 0; i < p.length; i++) {
@@ -279,124 +377,211 @@
     return l;
   }
 
-  function compoe(titulo) {
-    var ctx = elTela.getContext("2d"), L = 1080, faixa = 348, af = L - faixa;
-    ctx.fillStyle = "#1B6957"; ctx.fillRect(0, 0, L, L);
+  function desenha(img, titulo, numero, total) {
+    var F = FORMATOS[formato], L = F.w, A = F.h;
+    var cv = document.createElement("canvas");
+    cv.width = L; cv.height = A;
+    var ctx = cv.getContext("2d");
+    var faixa = titulo ? Math.round(A * (formato === "story" ? 0.22 : 0.30)) : Math.round(A * 0.10);
+    var af = A - faixa;
 
-    var f = fotos[escolhida];
-    if (f && f.img) {
-      var k = Math.max(L / f.img.width, af / f.img.height);
-      var w = f.img.width * k, h = f.img.height * k;
-      ctx.drawImage(f.img, (L - w) / 2, (af - h) / 2, w, h);
+    ctx.fillStyle = "#1B6957"; ctx.fillRect(0, 0, L, A);
+    if (img) {
+      var k = Math.max(L / img.width, af / img.height);
+      var w = img.width * k, h = img.height * k;
+      ctx.drawImage(img, (L - w) / 2, (af - h) / 2, w, h);
     } else {
       ctx.fillStyle = "#DCC8AF"; ctx.fillRect(0, 0, L, af);
       ctx.fillStyle = "#8C2F26";
-      ctx.beginPath(); ctx.arc(L / 2, af / 2, 150, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(L / 2, af / 2, L * 0.14, 0, Math.PI * 2); ctx.fill();
     }
 
     ctx.fillStyle = "#1B6957"; ctx.fillRect(0, af, L, faixa);
     ctx.fillStyle = "#8C2F26"; ctx.fillRect(0, af, L, 12);
 
-    var tam = 62, linhas;
-    do {
-      ctx.font = "800 " + tam + 'px Archivo, "Segoe UI", Helvetica, sans-serif';
-      linhas = quebra(ctx, titulo, L - 300);
-      if (linhas.length <= 3) break;
-      tam -= 4;
-    } while (tam > 32);
-    linhas = linhas.slice(0, 3);
-
-    ctx.fillStyle = "#DCC8AF"; ctx.textBaseline = "top";
-    var y = af + 72;
-    linhas.forEach(function (ln) { ctx.fillText(ln, 64, y); y += tam * 1.15; });
+    if (titulo) {
+      var tam = 62, linhas;
+      do {
+        ctx.font = "800 " + tam + 'px Archivo, "Segoe UI", Helvetica, sans-serif';
+        linhas = quebra(ctx, titulo, L - 300);
+        if (linhas.length <= 3) break;
+        tam -= 4;
+      } while (tam > 32);
+      linhas = linhas.slice(0, 3);
+      ctx.fillStyle = "#DCC8AF"; ctx.textBaseline = "top";
+      var y = af + Math.round(faixa * 0.22);
+      linhas.forEach(function (ln) { ctx.fillText(ln, 64, y); y += tam * 1.15; });
+    }
 
     ctx.font = '600 25px Archivo, "Segoe UI", Helvetica, sans-serif';
     ctx.fillStyle = "rgba(220,200,175,0.75)";
-    ctx.fillText("Bento Rodrigues · Mariana/MG", 64, af + faixa - 58);
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("Bento Rodrigues · Mariana/MG", 64, A - Math.round(faixa * 0.26));
+
+    if (total > 1) {
+      ctx.font = '800 25px Archivo, "Segoe UI", Helvetica, sans-serif';
+      ctx.fillStyle = "#F5BE00";
+      ctx.fillText(numero + "/" + total, 64, A - Math.round(faixa * 0.26) - 38);
+    }
 
     if (logo) {
-      var lh = 118, lw = logo.width * (lh / logo.height);
-      var lx = L - 64 - lw, ly = af + faixa - lh - 54;
+      var lh = Math.round(A * 0.108), lw = logo.width * (lh / logo.height);
+      var lx = L - 64 - lw, ly = A - Math.round(faixa * 0.26) - lh + 8;
       ctx.fillStyle = "#DCC8AF"; ctx.fillRect(lx - 16, ly - 14, lw + 32, lh + 28);
       ctx.drawImage(logo, lx, ly, lw, lh);
     }
-
-    elTela.hidden = false; elVazio.hidden = true;
+    return cv;
   }
 
-  elCriar.addEventListener("click", function () {
+  function mostra(i) {
+    if (!quadros.length) return;
+    indice = Math.max(0, Math.min(i, quadros.length - 1));
+    elQuadro.textContent = "";
+    elQuadro.appendChild(quadros[indice].canvas);
+    elConta.textContent = (indice + 1) + " de " + quadros.length;
+    elNav.hidden = quadros.length < 2;
+    elBaixar.href = quadros[indice].url;
+    elBaixar.setAttribute("download", "post-ahobero-" + (indice + 1) + ".jpg");
+    elBaixar.removeAttribute("aria-disabled");
+    elBaixarTodas.hidden = quadros.length < 2;
+  }
+
+  $("ant").addEventListener("click", function () { mostra(indice - 1); });
+  $("prox").addEventListener("click", function () { mostra(indice + 1); });
+
+  /* ---------- legenda ---------- */
+  function legendaLocal(assunto, titulo) {
+    var a = (assunto || titulo || "").toLowerCase();
+    var abre;
+    if (/colheit|planti|pimenta/.test(a))
+      abre = "Colhemos a pimenta biquinho na nossa própria área de plantio, em Bento Rodrigues.";
+    else if (/sede|visit|espaço|espaco/.test(a))
+      abre = "A nossa sede definitiva, no Novo Bento Rodrigues, está de portas abertas.";
+    else if (/feira|event|expo|gramad/.test(a))
+      abre = "Levar a nossa geleia para fora de Mariana é também levar a nossa história.";
+    else if (/mulher|equipe|quem faz|associad/.test(a))
+      abre = "Somos sete mulheres, e cada pote passa pela mão de todas nós.";
+    else if (/receit|mesa|queijo|sabor/.test(a))
+      abre = "A nossa geleia de pimenta biquinho combina com queijo, com carne e com pão quentinho.";
+    else
+      abre = "A nossa geleia de pimenta biquinho nasce em Bento Rodrigues, feita à mão.";
+
+    var meio = assunto && assunto.trim()
+      ? assunto.trim().replace(/\s+/g, " ")
+      : "Desde o plantio até a etiqueta colada à mão, tudo passa pelo trabalho das sete mulheres da associação.";
+    if (!/[.!?]$/.test(meio)) meio += ".";
+
+    var fecha = "O pote de 150 g sai por R$ 20, e por R$ 15 para quem é da comunidade. " +
+      "Venha conhecer a nossa sede ou chame a gente por mensagem para encomendar.";
+
+    return abre + " " + meio + " " + fecha + "\n\n#AHOBERO #BentoRodrigues #PimentaBiquinho";
+  }
+
+  async function legendaGroq(chave, assunto, titulo) {
+    var r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + chave },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.7,
+        max_tokens: 500,
+        messages: [
+          { role: "system", content: REGRAS + "\n\nFATOS:\n" + FATOS },
+          { role: "user", content: "Titulo do post: " + (titulo || "(sem titulo)") +
+              "\nO que contar: " + (assunto || "Apresentar a geleia e a associacao.") }
+        ]
+      })
+    });
+    if (!r.ok) {
+      var corpo = await r.text().catch(function () { return ""; });
+      var e = new Error(r.status === 401 ? "chave recusada" : "erro " + r.status);
+      e.detalhe = corpo.slice(0, 160);
+      throw e;
+    }
+    var j = await r.json();
+    var txt = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+    if (!txt) throw new Error("resposta vazia");
+    txt = txt.trim();
+    if (/indica[cç][aã]o geogr[aá]fica (concedid|aprovad|obtid)/i.test(txt))
+      throw new Error("a legenda afirmava que a IG foi concedida");
+    return txt;
+  }
+
+  /* ---------- criar ---------- */
+  elCriar.addEventListener("click", async function () {
     var titulo = elTitulo.value.trim();
-    var legenda = elLegIn.value.trim();
-    if (!titulo && !legenda && !fotos.length) {
-      elEstado.textContent = "Escolha uma foto ou escreva o título antes de criar.";
+    var assunto = elAssunto.value.trim();
+    if (!titulo && !assunto && !selecao.length) {
+      elEstado.textContent = "Escolha ao menos uma foto ou escreva o que o post deve contar.";
       elTitulo.focus();
       return;
     }
-    if (!titulo) titulo = (legenda.split(/[.!?]/)[0] || "Geleia de pimenta biquinho").slice(0, 80);
-    if (!legenda) legenda = titulo;
+    if (!titulo) titulo = (assunto.split(/[.!?]/)[0] || "Geleia de pimenta biquinho").slice(0, 80);
 
+    elCriar.disabled = true;
     elCarga.classList.add("pulsa");
     elMsgVazio.textContent = "Montando...";
-    elCriar.disabled = true;
+    elEstado.textContent = "Montando os quadros.";
 
-    setTimeout(function () {
-      compoe(titulo);
-      atual = { titulo: titulo, legenda: legenda, url: elTela.toDataURL("image/jpeg", 0.85) };
-      elLegenda.removeAttribute("data-vazia");
-      elLegenda.textContent = legenda;
-      elCopiar.disabled = false;
-      elSalvar.disabled = false;
-      elCarga.classList.remove("pulsa");
-      elCriar.disabled = false;
-      elEstado.textContent = "Pronto. Copie a legenda, salve a imagem pelo aparelho e publique.";
-    }, 520);
+    var usadas = elCarrossel.checked ? selecao.slice(0, 10) : selecao.slice(0, 1);
+    if (!usadas.length) usadas = [-1];
+
+    quadros.forEach(function (q) { URL.revokeObjectURL(q.url); });
+    quadros = [];
+
+    for (var n = 0; n < usadas.length; n++) {
+      var f = usadas[n] >= 0 ? fotos[usadas[n]] : null;
+      var cv = desenha(f && f.img, n === 0 ? titulo : "", n + 1, usadas.length);
+      var url = cv.toDataURL("image/jpeg", 0.9);
+      quadros.push({ canvas: cv, url: url });
+    }
+    mostra(0);
+
+    var chave = elChave.value.trim();
+    if (chave) {
+      elEstado.textContent = "Escrevendo a legenda com a Groq...";
+      try {
+        legendaAtual = await legendaGroq(chave, assunto, titulo);
+        elEstado.textContent = "Legenda escrita pela Groq. Confira antes de publicar.";
+      } catch (e) {
+        legendaAtual = legendaLocal(assunto, titulo);
+        elEstado.textContent = "A Groq não respondeu (" + e.message + "). Usei a legenda montada aqui.";
+      }
+    } else {
+      legendaAtual = legendaLocal(assunto, titulo);
+      elEstado.textContent = "Legenda montada com os dados da associação. Para a escrita automática, abra “Legenda automática”.";
+    }
+
+    elLegenda.removeAttribute("data-vazia");
+    elLegenda.textContent = legendaAtual;
+    elCopiar.disabled = false;
+    elCarga.classList.remove("pulsa");
+    elCriar.disabled = false;
   });
 
-  /* ---------- histórico da sessão ---------- */
-  elSalvar.addEventListener("click", function () {
-    if (!atual) return;
-    historico.unshift(atual);
-    elConta.textContent = historico.length + " salvo" + (historico.length > 1 ? "s" : "");
-    elHist.textContent = "";
-    var linha = document.createElement("div");
-    linha.className = "minis";
-    historico.slice(0, 8).forEach(function (p) {
-      var t = new Image();
-      t.src = p.url; t.alt = p.titulo; t.title = p.titulo;
-      t.style.width = "62px"; t.style.height = "62px";
-      t.addEventListener("click", function () {
-        elLegenda.textContent = p.legenda;
-        elTitulo.value = p.titulo;
-        elLegIn.value = p.legenda;
-      });
-      linha.appendChild(t);
-    });
-    elHist.appendChild(linha);
-    var nota = document.createElement("p");
-    nota.className = "aviso";
-    nota.textContent = "Some ao fechar a página. Na versão completa o acervo fica guardado e alimenta as próximas sugestões.";
-    elHist.appendChild(nota);
-  });
-
-  /* ---------- copiar e publicar ---------- */
+  /* ---------- copiar, baixar, publicar ---------- */
   function copia() {
-    var t = elLegenda.textContent;
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(t).catch(function () {});
+      return navigator.clipboard.writeText(elLegenda.textContent).catch(function () {});
     }
     return Promise.resolve();
   }
-
   elCopiar.addEventListener("click", function () {
     copia().then(function () {
       elCopiar.textContent = "copiada";
       setTimeout(function () { elCopiar.textContent = "copiar legenda"; }, 1600);
     });
   });
-
+  elBaixarTodas.addEventListener("click", function () {
+    quadros.forEach(function (q, i) {
+      var a = document.createElement("a");
+      a.href = q.url; a.download = "post-ahobero-" + (i + 1) + ".jpg";
+      document.body.appendChild(a); a.click(); a.remove();
+    });
+  });
   ["irInsta", "irTiktok"].forEach(function (id) {
     $(id).addEventListener("click", function () {
-      if (!atual) { elEstado.textContent = "Crie um post antes de abrir a rede."; return; }
+      if (!quadros.length) { elEstado.textContent = "Crie um post antes de abrir a rede."; return; }
       copia();
       elEstado.textContent = "Legenda copiada. Escolha a imagem pelo aparelho ao chegar na rede.";
     });
@@ -416,7 +601,6 @@
     { tema: "Como usar a geleia à mesa", nota: "Receita curta com queijo, carne ou pão" },
     { tema: "De onde vem a pimenta biquinho", nota: "Do plantio próprio até o pote" }
   ];
-
   (function pintaCal() {
     var d = new Date(); d.setHours(9, 0, 0, 0);
     var datas = [];
