@@ -7,7 +7,8 @@ const ORIGENS = [
   // acrescente outros domínios seus aqui
 ];
 
-const MODELO = "llama-3.3-70b-versatile";
+const MODELO_TEXTO = "llama-3.3-70b-versatile";
+const MODELO_VISAO = "qwen/qwen3.8-27b";   // aceita até 3 imagens por chamada
 const LIMITE_POR_IP = 20;          // pedidos por janela
 const JANELA_MS = 60 * 60 * 1000;  // uma hora
 
@@ -41,6 +42,17 @@ export default {
     const usuario = String(corpo.usuario || "").slice(0, 8000);
     if (!usuario) return json({ erro: "falta o campo usuario" }, 400, cors);
 
+    // imagens opcionais, como data URL; o modelo de visão aceita até 3
+    const imagens = Array.isArray(corpo.imagens)
+      ? corpo.imagens.filter((u) => typeof u === "string" && u.startsWith("data:image/")).slice(0, 3)
+      : [];
+    const comVisao = imagens.length > 0;
+
+    const conteudoUsuario = comVisao
+      ? [{ type: "text", text: usuario }].concat(
+          imagens.map((u) => ({ type: "image_url", image_url: { url: u } })))
+      : usuario;
+
     const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -48,12 +60,12 @@ export default {
         "Authorization": "Bearer " + env.GROQ_API_KEY
       },
       body: JSON.stringify({
-        model: MODELO,
+        model: comVisao ? MODELO_VISAO : MODELO_TEXTO,
         temperature: 0.7,
         max_tokens: 600,
         messages: [
           { role: "system", content: sistema },
-          { role: "user", content: usuario }
+          { role: "user", content: conteudoUsuario }
         ]
       })
     });

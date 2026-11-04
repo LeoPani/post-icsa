@@ -127,8 +127,8 @@
   .passo[data-ativo="1"] { background: var(--yellow); }
   .passo[data-feito="1"] b { background: var(--ah-verde, #1B6957); color: #fff; }
   .cursor { position: absolute; left: 24px; top: 24px; transition: transform 620ms cubic-bezier(.3,.8,.3,1); pointer-events: none; }
-  .cursor[data-clique="1"] svg { transform: scale(0.8); }
-  .cursor svg { transition: transform 120ms linear; display: block; }
+  .cursor[data-clique="1"] svg { transform: scale(0.72) rotate(-6deg); }
+  .cursor svg { transition: transform 140ms cubic-bezier(.3,1.6,.4,1); display: block; filter: drop-shadow(0 0 0 transparent); }
   .selo {
     position: absolute; right: -34px; top: 12px; transform: rotate(32deg); background: var(--red); color: #fff;
     font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; padding: 4px 42px;
@@ -294,7 +294,7 @@
                   <div class="passo" data-p="3"><b>4</b><span>Publicar</span></div>
                 </div>
                 <div class="cursor" id="cursorSim" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" width="26" height="26"><polygon points="3,2 3,20 8,15 11,22 14,21 11,14 18,14" fill="#141414" stroke="#F6F4EE" stroke-width="1.5"></polygon></svg>
+                  <svg viewBox="0 0 24 24" width="58" height="58"><polygon points="3,2 3,20 8,15 11,22 14,21 11,14 18,14" fill="#141414" stroke="#F6F4EE" stroke-width="1.5"></polygon></svg>
                 </div>
                 <div class="selo" id="seloSim">simulação</div>
               </div>
@@ -353,11 +353,19 @@
   im.onload = function () { logo = im; };
   im.src = "ahobero-logo.png";
 
-  async function pedeAoServico(sistema, usuario) {
+  function paraDataURL(img, lado) {
+    var k = Math.min(1, lado / Math.max(img.width, img.height));
+    var cv = document.createElement("canvas");
+    cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+    cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+    return cv.toDataURL("image/jpeg", 0.78);
+  }
+
+  async function pedeAoServico(sistema, usuario, imagens) {
     var r = await fetch(SERVICO, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sistema: sistema, usuario: usuario })
+      body: JSON.stringify({ sistema: sistema, usuario: usuario, imagens: imagens || [] })
     });
     var j = await r.json().catch(function () { return {}; });
     if (!r.ok || !j.texto) throw new Error(j.erro || "serviço indisponível");
@@ -543,11 +551,15 @@
     return abre + " " + meio + " " + fecha + "\n\n#AHOBERO #BentoRodrigues #PimentaBiquinho";
   }
 
-  async function legendaServico(assunto, titulo) {
+  async function legendaServico(assunto, titulo, imagens) {
+    var temFoto = imagens && imagens.length;
     var txt = await pedeAoServico(
-      REGRAS + "\n\nFATOS:\n" + FATOS,
+      REGRAS + "\n\nFATOS:\n" + FATOS +
+      (temFoto ? "\n\nA foto anexada e a imagem deste post. Olhe para ela e escreva a partir do que aparece: " +
+        "quem esta, o que estao fazendo, o lugar. Descreva somente o que da para ver; nao invente detalhe algum." : ""),
       "Titulo do post: " + (titulo || "(sem titulo)") +
-      "\nO que contar: " + (assunto || "Apresentar a geleia e a associacao.")
+      "\nO que contar: " + (assunto || (temFoto ? "O que aparece na foto." : "Apresentar a geleia e a associacao.")),
+      imagens
     );
     if (/indica[c\u00e7][a\u00e3]o geogr[a\u00e1]fica (concedid|aprovad|obtid)/i.test(txt))
       throw new Error("a legenda afirmava que a IG foi concedida");
@@ -584,9 +596,14 @@
     }
     mostra(0);
 
-    elEstado.textContent = "Escrevendo a legenda...";
+    elEstado.textContent = usadas[0] >= 0 ? "Olhando a foto e escrevendo a legenda..." : "Escrevendo a legenda...";
+    var paraOlhar = [];
+    for (var m = 0; m < usadas.length && paraOlhar.length < 3; m++) {
+      var ff = usadas[m] >= 0 ? fotos[usadas[m]] : null;
+      if (ff && ff.img) paraOlhar.push(paraDataURL(ff.img, 1024));
+    }
     try {
-      legendaAtual = await legendaServico(assunto, titulo);
+      legendaAtual = await legendaServico(assunto, titulo, paraOlhar);
       elEstado.textContent = "Legenda escrita. Confira antes de publicar: quem aprova o texto é a associação.";
     } catch (e) {
       legendaAtual = legendaLocal(assunto, titulo);
@@ -646,8 +663,8 @@
 
     function vaiPara(alvo) {
       var a = alvo.getBoundingClientRect(), b = palco.getBoundingClientRect();
-      var x = a.left - b.left + a.width - 54;
-      var y = a.top - b.top + a.height / 2 - 34;
+      var x = a.left - b.left + a.width - 86;
+      var y = a.top - b.top + a.height / 2 - 26;
       cursor.style.transform = "translate(" + x + "px," + y + "px)";
     }
 
@@ -804,8 +821,13 @@
     var assunto = material || "Apresentar a geleia e a associacao.";
     var titulo = "";
 
+    var olharBanco = [];
+    for (var q = 0; q < imgs.length && olharBanco.length < 3; q++) {
+      var ib = await carregaBlob(imgs[q].blob);
+      if (ib) olharBanco.push(paraDataURL(ib, 1024));
+    }
     try {
-      var r = await postDoBanco(assunto);
+      var r = await postDoBanco(assunto, olharBanco);
       titulo = r.titulo; legendaAtual = r.legenda;
       elEstadoBanco.textContent = "Post gerado a partir do banco.";
     } catch (e) {
@@ -834,11 +856,13 @@
     b.disabled = false; b.textContent = "gerar post agora";
   });
 
-  async function postDoBanco(assunto) {
+  async function postDoBanco(assunto, imagens) {
     var txt = await pedeAoServico(
       REGRAS + "\n\nFATOS:\n" + FATOS +
+      (imagens && imagens.length ? "\n\nAs fotos anexadas sao as do post. Use o que aparece nelas, sem inventar detalhe." : "") +
       "\n\nResponda SOMENTE com um objeto JSON {\"titulo\": string de ate 70 caracteres, \"legenda\": string}.",
-      "Material guardado pela associacao:\n" + assunto + "\n\nEscolha o angulo mais forte e escreva o post."
+      "Material guardado pela associacao:\n" + assunto + "\n\nEscolha o angulo mais forte e escreva o post.",
+      imagens
     );
     var m = txt.match(/\{[\s\S]*\}/);
     if (!m) throw new Error("resposta fora do formato");
